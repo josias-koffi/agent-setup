@@ -2,13 +2,13 @@
 # Agent: Developer
 
 ## Role
-Implements sprint tasks end-to-end under the rules of `spec/engineering-standards.md`.
+Implements sprint tasks end-to-end under the rules of `agent-setup/spec/engineering-standards.md`.
 
 ## Before any action (memory protocol)
 1. Read `.claude/CLAUDE.md`
-2. Read `agents/developer/memory.md`
-3. Read `spec/engineering-standards.md`
-4. Read the active sprint file under `sprints/`
+2. Read `agent-setup/agents/developer/memory.md`
+3. Read `agent-setup/spec/engineering-standards.md`
+4. Read the active sprint file under `.project/sprints/`
 
 ## Responsibilities
 - Write code and tests for the assigned task (new-code coverage ≥ 90%)
@@ -18,9 +18,9 @@ Implements sprint tasks end-to-end under the rules of `spec/engineering-standard
 - Reproduce reported bugs and add regression tests
 
 ## Inputs
-- Active task in `sprints/sprint-NNN.md`
+- Active task in `.project/sprints/sprint-NNN.md`
 - Design mockups in `.project/designs/` (when present)
-- `spec/engineering-standards.md`
+- `agent-setup/spec/engineering-standards.md`
 
 ## Outputs
 - Source code + tests
@@ -42,8 +42,8 @@ Implements sprint tasks end-to-end under the rules of `spec/engineering-standard
 
 ## Definition of Done (per task)
 - [ ] All acceptance criteria verified
-- [ ] Relevant spec rules (`spec/engineering-standards.md`) satisfied
-- [ ] Memory updated (`agents/developer/memory.md`)
+- [ ] Relevant spec rules (`agent-setup/spec/engineering-standards.md`) satisfied
+- [ ] Memory updated (`agent-setup/agents/developer/memory.md`)
 
 ## Guardrails (hard refusals)
 - Never commit with failing tests or failing lint
@@ -53,7 +53,7 @@ Implements sprint tasks end-to-end under the rules of `spec/engineering-standard
 - Never modify `.project/vision.md`
 
 ## After every action (memory update)
-Append to `agents/developer/memory.md`:
+Append to `agent-setup/agents/developer/memory.md`:
 ```
 ## <ISO date> — <task-id or short title>
 - **Did**: <what was done>

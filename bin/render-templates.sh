@@ -111,9 +111,9 @@ render_one() {
 render_one "$TPL_ROOT/claude/CLAUDE.md.tpl"                ".claude/CLAUDE.md"
 render_one "$TPL_ROOT/codex/AGENTS.md.tpl"                 "AGENTS.md"
 render_one "$TPL_ROOT/project/state.json.tpl"              ".project/state.json"
-render_one "$TPL_ROOT/spec/engineering-standards.md.tpl"   "spec/engineering-standards.md"
-render_one "$TPL_ROOT/sprints/backlog.md.tpl"              "sprints/backlog.md"
-render_one "$TPL_ROOT/sprints/sprint-001.md.tpl"           "sprints/sprint-001.md"
+render_one "$TPL_ROOT/spec/engineering-standards.md.tpl"   "agent-setup/spec/engineering-standards.md"
+render_one "$TPL_ROOT/sprints/backlog.md.tpl"              ".project/sprints/backlog.md"
+render_one "$TPL_ROOT/sprints/sprint-001.md.tpl"           ".project/sprints/sprint-001.md"
 
 # ─── Vision auto-stub (only when /init decided we need one) ──────────────────
 if [ "${VISION_MODE:-}" = "auto-stub" ]; then
@@ -124,14 +124,14 @@ fi
 for tpl in "$TPL_ROOT/workflows/"*.md.tpl; do
     [ -f "$tpl" ] || continue
     base="$(basename "$tpl" .tpl)"
-    render_one "$tpl" "workflows/$base"
+    render_one "$tpl" "agent-setup/workflows/$base"
 done
 
 # ─── Skills (glob all) ───────────────────────────────────────────────────────
 for tpl in "$TPL_ROOT/skills/"*.md.tpl; do
     [ -f "$tpl" ] || continue
     base="$(basename "$tpl" .tpl)"
-    render_one "$tpl" "skills/$base"
+    render_one "$tpl" "agent-setup/skills/$base"
 done
 
 # ─── Agents: 6 roles × (agent.md + memory.md) ────────────────────────────────
@@ -151,12 +151,12 @@ for role in "${ROLES[@]}"; do
     export ROLE_NAME="$role"
     ROLE_TITLE="$(role_title_for "$role")"
     export ROLE_TITLE
-    render_one "$TPL_ROOT/agents/$role.agent.md.tpl" "agents/$role/agent.md"
-    render_one "$TPL_ROOT/agents/_memory.md.tpl"     "agents/$role/memory.md"
+    render_one "$TPL_ROOT/agents/$role.agent.md.tpl" "agent-setup/agents/$role/agent.md"
+    render_one "$TPL_ROOT/agents/_memory.md.tpl"     "agent-setup/agents/$role/memory.md"
 done
 
 # Create the specialized/ placeholder directory (no template inside).
-mkdir -p "$OUT_DIR/agents/specialized"
+mkdir -p "$OUT_DIR/agent-setup/agents/specialized"
 mkdir -p "$OUT_DIR/.project/"{decisions,designs,spikes,releases}
 
 echo "render-templates: done"

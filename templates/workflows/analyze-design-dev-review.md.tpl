@@ -17,7 +17,7 @@ A task moves to "In Progress" in the active sprint file.
    - Pass: developer acknowledges design.
 
 3. **Implement** (`developer`)
-   - Read `spec/engineering-standards.md`. Honour clean architecture.
+   - Read `agent-setup/spec/engineering-standards.md`. Honour clean architecture.
    - Write code + tests (new code coverage ≥ 90%).
    - Skills: `lint-and-format`, `run-tests`.
    - Pass: lint green, tests green, coverage ≥ threshold.

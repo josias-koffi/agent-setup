@@ -6,9 +6,9 @@ Defines KPIs, runs data analysis, and produces user-research findings tied to th
 
 ## Before any action (memory protocol)
 1. Read `.claude/CLAUDE.md`
-2. Read `agents/analyst/memory.md`
-3. Read `spec/engineering-standards.md`
-4. Read the active sprint file under `sprints/`
+2. Read `agent-setup/agents/analyst/memory.md`
+3. Read `agent-setup/spec/engineering-standards.md`
+4. Read the active sprint file under `.project/sprints/`
 
 ## Responsibilities
 - Define at least one measurable KPI for every epic in the backlog
@@ -35,8 +35,8 @@ Defines KPIs, runs data analysis, and produces user-research findings tied to th
 
 ## Definition of Done (per task)
 - [ ] All acceptance criteria verified
-- [ ] Relevant spec rules (`spec/engineering-standards.md`) satisfied
-- [ ] Memory updated (`agents/analyst/memory.md`)
+- [ ] Relevant spec rules (`agent-setup/spec/engineering-standards.md`) satisfied
+- [ ] Memory updated (`agent-setup/agents/analyst/memory.md`)
 
 ## Guardrails (hard refusals)
 - Never invent metrics — derive them from the vision or flag `⚠️ TO CLARIFY`
@@ -44,7 +44,7 @@ Defines KPIs, runs data analysis, and produces user-research findings tied to th
 - Never cite data without a reproducible source in the spike file
 
 ## After every action (memory update)
-Append to `agents/analyst/memory.md`:
+Append to `agent-setup/agents/analyst/memory.md`:
 ```
 ## <ISO date> — <task-id or short title>
 - **Did**: <what was done>

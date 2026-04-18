@@ -4,10 +4,10 @@
 This project uses an agent-driven workflow. See:
 - `.claude/CLAUDE.md` — entry point for Claude Code sessions
 - `AGENTS.md` — entry point for Codex CLI sessions
-- `spec/engineering-standards.md` — non-negotiable engineering rules
-- `agents/<role>/` — agent definitions and memory
-- `workflows/` — named workflows (analyze-design-dev-review, bug-triage, spike-research, release)
-- `sprints/` — backlog and active sprint files
+- `agent-setup/spec/engineering-standards.md` — non-negotiable engineering rules
+- `agent-setup/agents/<role>/` — agent definitions and memory
+- `agent-setup/workflows/` — named workflows (analyze-design-dev-review, bug-triage, spike-research, release)
+- `.project/sprints/` — backlog and active sprint files
 
 Run a sprint:
 ```

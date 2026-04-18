@@ -8,7 +8,7 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 - Name: {{PROJECT_NAME}}
 - Vision: `.project/vision.md` (source of truth, never auto-edit)
 - State: `.project/state.json`
-- Engineering spec: `spec/engineering-standards.md`
+- Engineering spec: `agent-setup/spec/engineering-standards.md`
 
 ## Stack
 - {{STACK_DETAILS}}
@@ -24,18 +24,18 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 ## Required reading before substantial work
 1. `AGENTS.md`
 2. `.claude/CLAUDE.md`
-3. `agents/<own-role>/memory.md`
-4. `spec/engineering-standards.md`
-5. the relevant sprint file under `sprints/`
+3. `agent-setup/agents/<own-role>/memory.md`
+4. `agent-setup/spec/engineering-standards.md`
+5. the relevant sprint file under `.project/sprints/`
 
 ## Agent roles
-- Product Owner: `agents/product-owner/`
-- Developer: `agents/developer/`
-- Designer: `agents/designer/`
-- Analyst: `agents/analyst/`
-- QA Reviewer: `agents/qa-reviewer/`
-- Tech Lead: `agents/tech-lead/`
-- Specialized roles: `agents/specialized/`
+- Product Owner: `agent-setup/agents/product-owner/`
+- Developer: `agent-setup/agents/developer/`
+- Designer: `agent-setup/agents/designer/`
+- Analyst: `agent-setup/agents/analyst/`
+- QA Reviewer: `agent-setup/agents/qa-reviewer/`
+- Tech Lead: `agent-setup/agents/tech-lead/`
+- Specialized roles: `agent-setup/agents/specialized/`
 
 ## Hard rules
 - Never modify `.project/vision.md`
@@ -44,7 +44,7 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 - Never introduce a new framework without an ADR in `.project/decisions/`
 
 ## Memory protocol
-After completing a task, append a dated entry to `agents/<own-role>/memory.md` covering what was done, why, what was learned, and open questions.
+After completing a task, append a dated entry to `agent-setup/agents/<own-role>/memory.md` covering what was done, why, what was learned, and open questions.
 
 ## Sprint workflow
 Use the installed `sprint` skill with:

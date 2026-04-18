@@ -20,11 +20,11 @@ allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest
 - `AGENTS.md`
 - `.project/vision.md`
 - `.project/state.json`
-- `spec/engineering-standards.md`
-- `sprints/sprint-$ARGUMENTS[0].md`
-- `agents/$ARGUMENTS[1]/agent.md`
-- `agents/$ARGUMENTS[1]/memory.md`
-- `workflows/$ARGUMENTS[2].md`
+- `agent-setup/spec/engineering-standards.md`
+- `.project/sprints/sprint-$ARGUMENTS[0].md`
+- `agent-setup/agents/$ARGUMENTS[1]/agent.md`
+- `agent-setup/agents/$ARGUMENTS[1]/memory.md`
+- `agent-setup/workflows/$ARGUMENTS[2].md`
 
 ### 2. Validate (STOP on failure)
 - Every file above exists.
@@ -35,7 +35,7 @@ allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest
 ### 3. Run workflow
 Execute each workflow step in order. For each step:
 - Confirm assigned agent matches or is compatible.
-- Load referenced skills from `skills/`.
+- Load referenced skills from `agent-setup/skills/`.
 - Execute the action.
 - Verify the pass criterion.
 - **Blocking rule fails** → STOP, report, go to rollback point.
@@ -51,7 +51,7 @@ Tick checkboxes only when every acceptance criterion is verified.
 - If sprint DoD fully met, push sprint number into `completed_sprints`.
 
 ### 6. Update agent memory
-Append a dated entry to `agents/$ARGUMENTS[1]/memory.md`:
+Append a dated entry to `agent-setup/agents/$ARGUMENTS[1]/memory.md`:
 - Did / Why / Learned / Open
 
 ### 7. Report

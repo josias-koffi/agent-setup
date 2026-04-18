@@ -18,7 +18,7 @@ You are setting up (or upgrading) a project with a reusable multi-agent structur
 
 1. **Citation required** — every task, epic, user story, specialised agent, or specific workflow MUST cite a section of `.project/vision.md` using `(source: vision §<section>)`. No citation → do not create.
 2. **Unknown → clarify** — information not found in the vision OR detected in the codebase becomes `⚠️ TO CLARIFY: <precise question>`. Never invent.
-3. **No destructive changes to existing code** — you may add files under `.claude/`, `.project/`, `AGENTS.md`, `agents/`, `workflows/`, `skills/`, `sprints/`, `spec/`. You may NEVER modify source code or config outside those paths unless the user explicitly asks.
+3. **No destructive changes to existing code** — you may add files under `.claude/`, `.project/`, `AGENTS.md`, `agent-setup/`. You may NEVER modify source code or config outside those paths unless the user explicitly asks.
 4. **Idempotent** — the renderer skips any target file that already exists. You must not overwrite user edits. If re-running and a file looks out of date, ask the user before overwriting.
 5. **Language** — match the vision file's language for all generated content. If auto-generating the vision, match the README's language. Default: English.
 6. **No inventing stack** — use only technologies that are either (a) detected in the codebase or (b) explicitly mentioned in the vision.
@@ -104,8 +104,8 @@ From `package.json > name`, `Cargo.toml > package.name`, `pyproject.toml > proje
 
 ```bash
 mkdir -p .claude .project/{decisions,designs,spikes,releases}
-mkdir -p agents/{product-owner,developer,designer,analyst,qa-reviewer,tech-lead,specialized}
-mkdir -p workflows skills sprints spec
+mkdir -p agent-setup/agents/{product-owner,developer,designer,analyst,qa-reviewer,tech-lead,specialized}
+mkdir -p agent-setup/{workflows,skills,spec} .project/sprints
 ```
 
 ---
@@ -212,11 +212,11 @@ Created:
   .claude/CLAUDE.md
   .project/vision.md                    (<verbatim | auto-stub | kept>)
   .project/state.json
-  spec/engineering-standards.md
-  agents/<6 roles>/{agent.md, memory.md}
-  workflows/<4 files>
-  skills/<5 files>
-  sprints/{backlog.md, sprint-001.md}
+  agent-setup/spec/engineering-standards.md
+  agent-setup/agents/<6 roles>/{agent.md, memory.md}
+  agent-setup/workflows/<4 files>
+  agent-setup/skills/<5 files>
+  .project/sprints/{backlog.md, sprint-001.md}
 
 ⚠️  Clarifications pending (<N> items):
   - <list>
@@ -224,8 +224,8 @@ Created:
 ▶️  Recommended next actions:
   1. Review `.project/vision.md` (especially if auto-stub)
   2. Fill any ⚠️ TO CLARIFY commands in `AGENTS.md` and `.claude/CLAUDE.md`
-  3. Review `spec/engineering-standards.md` thresholds
-  4. Review `sprints/sprint-001.md`
+  3. Review `agent-setup/spec/engineering-standards.md` thresholds
+  4. Review `.project/sprints/sprint-001.md`
   5. Run: sprint 001 product-owner spike-research US-001
 ```
 

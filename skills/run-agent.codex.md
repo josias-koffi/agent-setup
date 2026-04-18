@@ -1,7 +1,7 @@
 ---
 name: run-agent
 description: >
-  Runs a specific agent on an ad hoc task, with or without a named workflow, outside sprint files. Args: agent [workflow] task. Use when the user wants a project-scoped agent execution that is not tied to sprints/sprint-NNN.md.
+  Runs a specific agent on an ad hoc task, with or without a named workflow, outside sprint files. Args: agent [workflow] task. Use when the user wants a project-scoped agent execution that is not tied to .project/sprints/sprint-NNN.md.
 allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest:*), Bash(go:*)
 ---
 
@@ -32,7 +32,7 @@ Interpretation:
 - workflow = none
 - task = `Review recent checkout changes for regressions`
 
-If `$ARGUMENTS[1]` matches an existing file in `workflows/<name>.md`, treat it as a workflow. Otherwise, treat the full remaining input as the task text.
+If `$ARGUMENTS[1]` matches an existing file in `agent-setup/workflows/<name>.md`, treat it as a workflow. Otherwise, treat the full remaining input as the task text.
 
 ## Strict sequence
 
@@ -41,14 +41,14 @@ If `$ARGUMENTS[1]` matches an existing file in `workflows/<name>.md`, treat it a
 - `.claude/CLAUDE.md`
 - `.project/vision.md`
 - `.project/state.json`
-- `spec/engineering-standards.md`
-- `agents/$ARGUMENTS[0]/agent.md`
-- `agents/$ARGUMENTS[0]/memory.md`
-- `workflows/$ARGUMENTS[1].md` only if a workflow was detected
+- `agent-setup/spec/engineering-standards.md`
+- `agent-setup/agents/$ARGUMENTS[0]/agent.md`
+- `agent-setup/agents/$ARGUMENTS[0]/memory.md`
+- `agent-setup/workflows/$ARGUMENTS[1].md` only if a workflow was detected
 
 ### 2. Validate (STOP on failure)
 - Project bootstrap files exist.
-- Agent exists under `agents/<agent>/agent.md`.
+- Agent exists under `agent-setup/agents/<agent>/agent.md`.
 - Task text is not empty.
 - Workflow exists if one was explicitly requested.
 
@@ -65,7 +65,7 @@ If `$ARGUMENTS[1]` matches an existing file in `workflows/<name>.md`, treat it a
 - Update `.project/state.json > last_updated`.
 
 ### 5. Update agent memory
-Append a dated entry to `agents/$ARGUMENTS[0]/memory.md`:
+Append a dated entry to `agent-setup/agents/$ARGUMENTS[0]/memory.md`:
 - Did / Why / Learned / Open
 
 ### 6. Report

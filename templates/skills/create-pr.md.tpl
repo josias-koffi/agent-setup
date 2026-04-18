@@ -13,7 +13,7 @@ Open a pull request that is small, correct, and traceable to a task.
 1. Verify the branch is pushed and tracks a remote.
 2. Draft the PR title as `<type>(<scope>): <summary>` (matches the lead commit).
 3. Draft the PR body with:
-   - Link to the task (`sprints/sprint-NNN.md#<task-id>`)
+   - Link to the task (`.project/sprints/sprint-NNN.md#<task-id>`)
    - Acceptance criteria checklist (copied from the task)
    - Test evidence (lint / tests / coverage output or link)
    - Screenshots if UI

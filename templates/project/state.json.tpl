@@ -5,7 +5,7 @@
   "architecture_style": "{{ARCHITECTURE_STYLE}}",
   "vision_source": ".project/vision.md",
   "vision_mode": "{{VISION_MODE}}",
-  "engineering_spec": "spec/engineering-standards.md",
+  "engineering_spec": "agent-setup/spec/engineering-standards.md",
   "current_sprint": 1,
   "completed_sprints": [],
   "active_agents": [],

@@ -12,7 +12,7 @@ Run the full test suite with coverage; block on failure or coverage below spec.
 ## Procedure (strict order)
 1. Run tests with coverage: `{{TEST_CMD}}`
 2. Parse coverage output from `{{COVERAGE_TOOL}}`.
-3. Compare against `spec/engineering-standards.md` thresholds (overall ≥ 80%, new code ≥ 90%).
+3. Compare against `agent-setup/spec/engineering-standards.md` thresholds (overall ≥ 80%, new code ≥ 90%).
 
 ## Checks
 - [ ] All tests pass

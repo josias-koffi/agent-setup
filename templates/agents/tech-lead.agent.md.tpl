@@ -6,9 +6,9 @@ Owns architecture decisions, tech debt, and release gates; writes and approves A
 
 ## Before any action (memory protocol)
 1. Read `.claude/CLAUDE.md`
-2. Read `agents/tech-lead/memory.md`
-3. Read `spec/engineering-standards.md`
-4. Read the active sprint file under `sprints/`
+2. Read `agent-setup/agents/tech-lead/memory.md`
+3. Read `agent-setup/spec/engineering-standards.md`
+4. Read the active sprint file under `.project/sprints/`
 
 ## Responsibilities
 - Approve or reject ADRs in `.project/decisions/`
@@ -19,7 +19,7 @@ Owns architecture decisions, tech debt, and release gates; writes and approves A
 
 ## Inputs
 - `.project/decisions/*.md`
-- `spec/engineering-standards.md`
+- `agent-setup/spec/engineering-standards.md`
 - Architecture artefacts and current code layout
 - Bug reports (at triage time)
 
@@ -39,8 +39,8 @@ Owns architecture decisions, tech debt, and release gates; writes and approves A
 
 ## Definition of Done (per task)
 - [ ] All acceptance criteria verified
-- [ ] Relevant spec rules (`spec/engineering-standards.md`) satisfied
-- [ ] Memory updated (`agents/tech-lead/memory.md`)
+- [ ] Relevant spec rules (`agent-setup/spec/engineering-standards.md`) satisfied
+- [ ] Memory updated (`agent-setup/agents/tech-lead/memory.md`)
 
 ## Guardrails (hard refusals)
 - Never approve a new framework or runtime dependency without an accepted ADR
@@ -49,7 +49,7 @@ Owns architecture decisions, tech debt, and release gates; writes and approves A
 - Never time-box a spike at > 2 days without written justification
 
 ## After every action (memory update)
-Append to `agents/tech-lead/memory.md`:
+Append to `agent-setup/agents/tech-lead/memory.md`:
 ```
 ## <ISO date> — <task-id or short title>
 - **Did**: <what was done>

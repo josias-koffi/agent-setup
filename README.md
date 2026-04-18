@@ -1,9 +1,9 @@
-# Multi-Agent Project Orchestrator for Claude Code
+# Multi-Agent Project Orchestrator for Claude Code and Codex CLI
 
-A two-layer system:
+A two-layer system with dual CLI support:
 
-- **`bootstrap.sh`** — a one-time global install. Copies templates, a shell renderer, and two skills (`/init`, `/sprint`) into `~/.claude/`. Runs in pure bash — no Claude tokens burned.
-- **`/init`** — a thin per-project command. Detects stack + context, invokes the shell renderer, produces a full multi-agent project structure. Almost no boilerplate enters Claude's context.
+- **`bootstrap.sh`** — a one-time global install. Copies templates, a shell renderer, and two skills into both `~/.claude/` and `~/.codex/`. Runs in pure bash.
+- **`init` / `/init`** — a thin per-project command. Detects stack + context, invokes the shell renderer, and produces a full multi-agent project structure for both Claude and Codex entrypoints.
 
 Every project initialised with `/init` gets:
 
@@ -13,7 +13,7 @@ Every project initialised with `/init` gets:
 - **Engineering spec** — Clean Architecture, 80% test coverage, Conventional Commits, trunk-based branching, ADRs, WCAG AA, OWASP baseline, structured observability
 - **Project memory** — `CLAUDE.md` + per-agent `memory.md` journals
 - **Blocking vs advisory enforcement** — tests/security/coverage are blocking; style is advisory
-- **Global `/sprint` command** to run any agent + workflow against a task
+- **Global sprint skill/command** to run any agent + workflow against a task
 
 ## Install (once)
 
@@ -23,17 +23,16 @@ bash bootstrap.sh --force         # reinstall (backs up current templates)
 bash bootstrap.sh --dry-run       # print actions without writing
 ```
 
-Installs to `~/.claude/` (or `$CLAUDE_HOME` if set):
+Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if set):
 
 ```
 ~/.claude/
-├── skills/
-│   ├── init/SKILL.md             # /init command
-│   └── sprint/SKILL.md           # /sprint command (global for every project)
-└── agent-setup/
-    ├── VERSION
-    ├── bin/render-templates.sh   # shell interpolation engine
-    └── templates/                # every static template /init copies into projects
+├── skills/{init,sprint}/SKILL.md
+└── agent-setup/{VERSION,bin/,templates/}
+
+~/.codex/
+├── skills/{init,sprint}/SKILL.md
+└── agent-setup/{VERSION,bin/,templates/}
 ```
 
 ## Use
@@ -60,10 +59,18 @@ After `/init` completes, `/sprint` is already available (installed globally by `
 /sprint 001 tech-lead    release all
 ```
 
+Codex CLI can use the same generated project with:
+
+```text
+init [optional vision path]
+sprint 001 developer analyze-design-dev-review US-001
+```
+
 ## What gets created in a project
 
 ```
 your-project/
+├── AGENTS.md                          # auto-loaded guidance for Codex CLI
 ├── .claude/
 │   └── CLAUDE.md                         # auto-loaded every session
 ├── .project/
@@ -103,7 +110,7 @@ your-project/
 
 Old model (single mega-skill): `/init` loaded ~900 lines of inline templates into context and re-typed every file. Slow, expensive, error-prone.
 
-New model: `bootstrap.sh` installs templates as plain files at `~/.claude/agent-setup/templates/`. `/init` is ~240 lines and only does the work that requires judgment — stack detection, vision-stub enrichment, clarifications. All static generation is delegated to `bin/render-templates.sh`, which reads templates, substitutes `{{VARS}}`, writes output files — without those bytes ever entering the LLM context.
+New model: `bootstrap.sh` installs templates as plain files under each CLI home. `/init` only does the work that requires judgment: stack detection, vision-stub enrichment, and clarifications. All static generation is delegated to `bin/render-templates.sh`, which reads templates, substitutes `{{VARS}}`, and writes output files.
 
 ## Anti-hallucination guarantees
 
@@ -116,7 +123,7 @@ New model: `bootstrap.sh` installs templates as plain files at `~/.claude/agent-
 ## Memory protocol
 
 Every agent, before acting:
-1. Reads `.claude/CLAUDE.md`
+1. Reads `AGENTS.md` when running in Codex CLI, or `.claude/CLAUDE.md` when running in Claude Code
 2. Reads its own `agents/<role>/memory.md`
 3. Reads `spec/engineering-standards.md`
 4. Reads the active sprint file
@@ -142,11 +149,11 @@ Every agent, after acting: appends a dated entry to its memory file with `Did / 
 
 ## Updating
 
-Pull a newer version of this repo and re-run `bash bootstrap.sh`. If the `VERSION` file changed, bootstrap prints instructions; `--force` rolls the install forward and backs up the previous tree to `~/.claude/agent-setup.bak.<timestamp>/`.
+Pull a newer version of this repo and re-run `bash bootstrap.sh`. If the `VERSION` file changed, bootstrap rolls each installed target forward independently; `--force` backs up each existing framework tree before reinstalling.
 
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/agent-setup
-rm -rf ~/.claude/skills/init ~/.claude/skills/sprint
+rm -rf ~/.claude/agent-setup ~/.claude/skills/init ~/.claude/skills/sprint
+rm -rf ~/.codex/agent-setup ~/.codex/skills/init ~/.codex/skills/sprint
 ```

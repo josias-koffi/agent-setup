@@ -13,11 +13,13 @@
 /sprints/
 /workflows/
 
-# Inside skills/, only track our two framework source files.
+# Inside skills/, only track framework source files.
 # Anything else in that dir is a stray /init artefact.
 /skills/*
 !/skills/init.md
+!/skills/init.codex.md
 !/skills/sprint.md
+!/skills/sprint.codex.md
 
 # Common backup files
 *.bak

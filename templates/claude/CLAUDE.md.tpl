@@ -4,6 +4,8 @@
 
 > Auto-loaded by Claude Code every session. Keep this file short. Long content goes in spec/, agents/<role>/, or .project/.
 
+Codex CLI sessions should also read `AGENTS.md` at the repo root.
+
 ## Project
 - Name: {{PROJECT_NAME}}
 - Vision: `.project/vision.md` (source of truth, never auto-edit)

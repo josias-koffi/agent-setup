@@ -1,16 +1,16 @@
 ---
 name: init
 description: >
-  Initialises or upgrades a project with a multi-agent structure (agents, workflows, skills, sprints, memory, and engineering spec). Works on greenfield projects AND existing codebases. Detects stack and conventions automatically. Use when the user says "init project", "set up agents", "bootstrap this repo", or runs /init. Optional arg: path to a vision markdown file.
-allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(git:*), Bash(date:*), Bash(env:*), Bash($HOME/.claude/agent-setup/bin/render-templates.sh:*)
+  Initialises or upgrades a project with a multi-agent structure (agents, workflows, skills, sprints, memory, and engineering spec). Works on greenfield projects AND existing codebases. Detects stack and conventions automatically. Use when the user says "init project", "set up agents", "bootstrap this repo", or runs init. Optional arg: path to a vision markdown file.
+allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(git:*), Bash(date:*), Bash(env:*), Bash(${CODEX_HOME:-$HOME/.codex}/agent-setup/bin/render-templates.sh:*)
 ---
 
-# /init — Multi-Agent Project Initialiser
+# init — Multi-Agent Project Initialiser
 
-You are setting up (or upgrading) a project with a reusable multi-agent structure. Almost all file generation is done by a shell renderer shipped with the framework — your job is to detect context, invoke the renderer with the right env vars, and handle the small LLM-judgment pieces (vision stub, README append, final report).
+You are setting up (or upgrading) a project with a reusable multi-agent structure. Almost all file generation is done by a shell renderer shipped with the framework. Your job is to detect context, invoke the renderer with the right env vars, and handle the small LLM-judgment pieces: vision stub, README append, and final report.
 
 ## Parameters
-- `$ARGUMENTS[0]` = path to vision markdown file (optional)
+- `$ARGUMENTS[0]` = path to a vision markdown file (optional)
 
 ---
 
@@ -28,7 +28,7 @@ You are setting up (or upgrading) a project with a reusable multi-agent structur
 ## Phase 0 — Preflight
 
 ```bash
-test -x "${CLAUDE_HOME:-$HOME/.claude}/agent-setup/bin/render-templates.sh" \
+test -x "${CODEX_HOME:-$HOME/.codex}/agent-setup/bin/render-templates.sh" \
   || { echo "Framework not installed. Run: bash bootstrap.sh (from the agent-setup repo)" >&2; exit 2; }
 ```
 
@@ -155,14 +155,14 @@ env \
 - Checkout (src/features/checkout/)
 - Admin dashboard (src/features/admin/)" \
   CLARIFICATIONS_JSON_ARRAY='["FORMAT_CMD not detected","coverage tool not configured"]' \
-  "${CLAUDE_HOME:-$HOME/.claude}/agent-setup/bin/render-templates.sh" "$(pwd)"
+  "${CODEX_HOME:-$HOME/.codex}/agent-setup/bin/render-templates.sh" "$(pwd)"
 ```
 
 **Rules:**
 - Every variable listed in the renderer's `VARS` array must be provided. Unknown command values → the literal string `⚠️ TO CLARIFY: <what>`.
-- `CLARIFICATIONS_JSON_ARRAY` must be a **valid JSON array** (use `jq -Rsc 'split("\n")|map(select(length>0))'` if you need to build it from a newline-separated list, or write it by hand).
-- `DETECTED_FEATURES_BLOCK` supports newlines; bash-quoted heredoc or `$'...'` both work.
-- Multi-line values are fine — the renderer uses bash string replace, not `sed`.
+- `CLARIFICATIONS_JSON_ARRAY` must be a **valid JSON array**.
+- `DETECTED_FEATURES_BLOCK` supports newlines.
+- Multi-line values are fine.
 
 **Check exit code:**
 - `0` — success
@@ -179,16 +179,14 @@ Surface stderr verbatim to the user on any non-zero exit, then STOP.
 ```bash
 if [ -f README.md ]; then
     if ! grep -q '<!-- generated-by: /init -->' README.md; then
-        # Render the snippet with PROJECT_NAME substituted, then append
         sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-            "${CLAUDE_HOME:-$HOME/.claude}/agent-setup/templates/readme-append.md.tpl" \
+            "${CODEX_HOME:-$HOME/.codex}/agent-setup/templates/readme-append.md.tpl" \
             >> README.md
     fi
 else
-    # No README → create a minimal one
     printf '# %s\n\n' "$PROJECT_NAME" > README.md
     sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-        "${CLAUDE_HOME:-$HOME/.claude}/agent-setup/templates/readme-append.md.tpl" \
+        "${CODEX_HOME:-$HOME/.codex}/agent-setup/templates/readme-append.md.tpl" \
         >> README.md
 fi
 ```
@@ -225,10 +223,10 @@ Created:
 
 ▶️  Recommended next actions:
   1. Review `.project/vision.md` (especially if auto-stub)
-  2. Fill any ⚠️ TO CLARIFY commands in `.claude/CLAUDE.md`
+  2. Fill any ⚠️ TO CLARIFY commands in `AGENTS.md` and `.claude/CLAUDE.md`
   3. Review `spec/engineering-standards.md` thresholds
   4. Review `sprints/sprint-001.md`
-  5. Run: /sprint 001 product-owner spike-research US-001
+  5. Run: sprint 001 product-owner spike-research US-001
 ```
 
 ---

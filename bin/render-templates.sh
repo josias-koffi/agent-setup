@@ -6,7 +6,8 @@
 #   env PROJECT_NAME=foo STACK=node LINT_CMD='npm run lint' ... \
 #       render-templates.sh /path/to/project
 #
-# Template source: ${CLAUDE_HOME:-$HOME/.claude}/agent-setup/templates/
+# Template source: the installed framework root next to this script, or
+# ${AGENT_SETUP_HOME}/agent-setup/templates when explicitly provided.
 # Writes files into the given OUT_DIR, skipping any that already exist.
 #
 # Exit codes:
@@ -19,6 +20,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRAMEWORK_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 OUT_DIR="${1:-}"
 if [ -z "$OUT_DIR" ]; then
     echo "usage: render-templates.sh <out-dir>" >&2
@@ -26,8 +30,12 @@ if [ -z "$OUT_DIR" ]; then
 fi
 OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 
-CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
-TPL_ROOT="$CLAUDE_HOME/agent-setup/templates"
+AGENT_SETUP_HOME="${AGENT_SETUP_HOME:-}"
+if [ -n "$AGENT_SETUP_HOME" ]; then
+    TPL_ROOT="$AGENT_SETUP_HOME/agent-setup/templates"
+else
+    TPL_ROOT="$FRAMEWORK_ROOT/templates"
+fi
 
 if [ ! -d "$TPL_ROOT" ]; then
     echo "render-templates: template dir not found: $TPL_ROOT" >&2
@@ -101,6 +109,7 @@ render_one() {
 
 # ─── 1:1 mappings ────────────────────────────────────────────────────────────
 render_one "$TPL_ROOT/claude/CLAUDE.md.tpl"                ".claude/CLAUDE.md"
+render_one "$TPL_ROOT/codex/AGENTS.md.tpl"                 "AGENTS.md"
 render_one "$TPL_ROOT/project/state.json.tpl"              ".project/state.json"
 render_one "$TPL_ROOT/spec/engineering-standards.md.tpl"   "spec/engineering-standards.md"
 render_one "$TPL_ROOT/sprints/backlog.md.tpl"              "sprints/backlog.md"

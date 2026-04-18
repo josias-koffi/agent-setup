@@ -5,19 +5,19 @@ description: >
 allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest:*), Bash(go:*)
 ---
 
-# /sprint runner
+# sprint runner
 
 ## Arguments
-- $ARGUMENTS[0] = sprint number, zero-padded (e.g. "001")
-- $ARGUMENTS[1] = agent name (e.g. "developer")
-- $ARGUMENTS[2] = workflow name (e.g. "analyze-design-dev-review")
-- $ARGUMENTS[3] = task ID or "all"
+- `$ARGUMENTS[0]` = sprint number, zero-padded (e.g. "001")
+- `$ARGUMENTS[1]` = agent name (e.g. "developer")
+- `$ARGUMENTS[2]` = workflow name (e.g. "analyze-design-dev-review")
+- `$ARGUMENTS[3]` = task ID or "all"
 
 ## Strict sequence
 
 ### 1. Load context
-- `.claude/CLAUDE.md`
 - `AGENTS.md`
+- `.claude/CLAUDE.md`
 - `.project/vision.md`
 - `.project/state.json`
 - `spec/engineering-standards.md`

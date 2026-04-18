@@ -1,0 +1,24 @@
+# Editor
+.idea/
+.vscode/
+
+# Local Claude Code project state (artefacts from running /init on this repo itself,
+# not part of the framework source)
+.claude/
+.project/
+
+# Stray directories that only appear if someone runs /init inside this repo
+/agents/
+/spec/
+/sprints/
+/workflows/
+
+# Inside skills/, only track our two framework source files.
+# Anything else in that dir is a stray /init artefact.
+/skills/*
+!/skills/init.md
+!/skills/sprint.md
+
+# Common backup files
+*.bak
+*.bak.*

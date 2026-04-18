@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 # Product Backlog
 
 > Source of truth: .project/vision.md

@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 <!-- vars: PROJECT_NAME, STACK_DETAILS, ARCHITECTURE_STYLE, LINT_CMD, FORMAT_CMD, TEST_CMD, BUILD_CMD, DEV_CMD -->
 # AGENTS.md — {{PROJECT_NAME}}
 
@@ -51,4 +51,11 @@ Use the installed `sprint` skill with:
 
 ```text
 sprint <sprint-number> <agent> <workflow> <task-id|all>
+```
+
+## Bootstrap workflow
+Use the installed `init-project` skill with:
+
+```text
+init-project [optional-vision-file.md]
 ```

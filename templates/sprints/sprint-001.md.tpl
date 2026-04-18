@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 <!-- vars: TODAY_ISO, TODAY_PLUS_14 -->
 # Sprint 001
 

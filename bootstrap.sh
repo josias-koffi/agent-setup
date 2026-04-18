@@ -9,7 +9,7 @@
 #
 # After install, from ANY project directory:
 #   claude
-#   /init [optional: vision-file.md]   # initialises .claude/, AGENTS.md, .project/, agents/, …
+#   /init-project [optional: vision-file.md]   # initialises .claude/, AGENTS.md, .project/, agents/, …
 #   /sprint 001 developer analyze-design-dev-review US-001
 #
 #   codex
@@ -17,10 +17,12 @@
 #   Use the global `sprint` skill after initialisation
 #
 # What gets installed:
-#   ~/.claude/skills/init/SKILL.md           — Claude /init skill
+#   ~/.claude/skills/init-project/SKILL.md   — Claude /init-project skill
 #   ~/.claude/skills/sprint/SKILL.md         — Claude /sprint skill
-#   ~/.codex/skills/init/SKILL.md            — Codex init skill
+#   ~/.claude/skills/run-agent/SKILL.md      — Claude /run-agent skill
+#   ~/.codex/skills/init-project/SKILL.md    — Codex init-project skill
 #   ~/.codex/skills/sprint/SKILL.md          — Codex sprint skill
+#   ~/.codex/skills/run-agent/SKILL.md       — Codex run-agent skill
 #   ~/.claude/agent-setup/VERSION            — Claude-installed framework version
 #   ~/.codex/agent-setup/VERSION             — Codex-installed framework version
 #   ~/.claude/agent-setup/bin/
@@ -29,7 +31,7 @@
 #   ~/.claude/agent-setup/templates/         — every static template /init copies
 #   ~/.codex/agent-setup/templates/          — every static template Codex skills use
 #
-# `/init` detects stack + context and calls render-templates.sh once to produce
+# `init-project` detects stack + context and calls render-templates.sh once to produce
 # all project files. Static boilerplate never enters the LLM context.
 #
 # Honours $CLAUDE_HOME and $CODEX_HOME for non-default locations.
@@ -71,7 +73,7 @@ fi
 NEW_VERSION="$(tr -d '[:space:]' <"$SCRIPT_DIR/VERSION")"
 
 # ─── Sanity check repo layout ────────────────────────────────────────────────
-for required in templates bin/render-templates.sh skills/init.md skills/sprint.md skills/init.codex.md skills/sprint.codex.md; do
+for required in templates bin/render-templates.sh skills/init.md skills/sprint.md skills/run-agent.md skills/init.codex.md skills/sprint.codex.md skills/run-agent.codex.md; do
     if [ ! -e "$SCRIPT_DIR/$required" ]; then
         echo "bootstrap: missing $SCRIPT_DIR/$required — repo looks incomplete" >&2
         exit 1
@@ -83,6 +85,7 @@ install_target() {
     local dest="$2"
     local init_skill_src="$3"
     local sprint_skill_src="$4"
+    local run_agent_skill_src="$5"
     local installed_version=""
 
     if [ -f "$dest/agent-setup/VERSION" ]; then
@@ -101,7 +104,7 @@ install_target() {
     fi
 
     run mkdir -p "$dest/agent-setup/bin" "$dest/agent-setup/templates"
-    run mkdir -p "$dest/skills/init" "$dest/skills/sprint"
+    run mkdir -p "$dest/skills/init-project" "$dest/skills/sprint" "$dest/skills/run-agent"
 
     echo "Installing agent-setup $NEW_VERSION for $cli_name → $dest"
 
@@ -110,12 +113,13 @@ install_target() {
     run chmod +x "$dest/agent-setup/bin/render-templates.sh"
     run cp "$SCRIPT_DIR/VERSION" "$dest/agent-setup/VERSION"
 
-    run cp "$SCRIPT_DIR/$init_skill_src" "$dest/skills/init/SKILL.md"
+    run cp "$SCRIPT_DIR/$init_skill_src" "$dest/skills/init-project/SKILL.md"
     run cp "$SCRIPT_DIR/$sprint_skill_src" "$dest/skills/sprint/SKILL.md"
+    run cp "$SCRIPT_DIR/$run_agent_skill_src" "$dest/skills/run-agent/SKILL.md"
 }
 
-install_target "Claude" "$CLAUDE_DEST" "skills/init.md" "skills/sprint.md"
-install_target "Codex" "$CODEX_DEST" "skills/init.codex.md" "skills/sprint.codex.md"
+install_target "Claude" "$CLAUDE_DEST" "skills/init.md" "skills/sprint.md" "skills/run-agent.md"
+install_target "Codex" "$CODEX_DEST" "skills/init.codex.md" "skills/sprint.codex.md" "skills/run-agent.codex.md"
 
 # ─── Banner ──────────────────────────────────────────────────────────────────
 if [ "$DRY_RUN" = 1 ]; then
@@ -130,11 +134,13 @@ cat <<BANNER
 ✅ agent-setup $NEW_VERSION installed.
 
 Installed under:
-  $CLAUDE_DEST/skills/init/SKILL.md   (Claude /init)
+  $CLAUDE_DEST/skills/init-project/SKILL.md (Claude /init-project)
   $CLAUDE_DEST/skills/sprint/SKILL.md (Claude /sprint)
+  $CLAUDE_DEST/skills/run-agent/SKILL.md (Claude /run-agent)
   $CLAUDE_DEST/agent-setup/           (Claude framework payload)
-  $CODEX_DEST/skills/init/SKILL.md    (Codex init skill)
+  $CODEX_DEST/skills/init-project/SKILL.md (Codex init-project skill)
   $CODEX_DEST/skills/sprint/SKILL.md  (Codex sprint skill)
+  $CODEX_DEST/skills/run-agent/SKILL.md (Codex run-agent skill)
   $CODEX_DEST/agent-setup/            (Codex framework payload)
 
 USAGE
@@ -144,19 +150,26 @@ USAGE
   claude
 
   # Greenfield project (with vision file):
-  /init ./vision.md
+  /init-project ./vision.md
 
   # Existing project (auto-detects stack, auto-generates vision stub):
-  /init
+  /init-project
 
-  # Run sprints from any project initialised by /init:
+  # Run sprints from any project initialised by /init-project:
   /sprint 001 developer  analyze-design-dev-review US-001
   /sprint 001 developer  analyze-design-dev-review all
   /sprint 001 qa-reviewer analyze-design-dev-review US-001
   /sprint 001 tech-lead  release all
 
-  # Or from Codex CLI, use the installed `init` and `sprint` skills
+  # Run an ad hoc task outside sprint files:
+  /run-agent developer analyze-design-dev-review "Fix checkout race condition"
+  /run-agent qa-reviewer "Review recent checkout changes for regressions"
+
+  # Or from Codex CLI, use the installed project skills with `$...`
   codex
+  $init-project ./vision.md
+  $sprint 001 developer analyze-design-dev-review US-001
+  $run-agent qa-reviewer Review recent checkout changes for regressions
 
 Reinstall later:
   bash bootstrap.sh --force   # backs up each installed target, then overwrites

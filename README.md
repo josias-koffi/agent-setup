@@ -2,10 +2,10 @@
 
 A two-layer system with dual CLI support:
 
-- **`bootstrap.sh`** — a one-time global install. Copies templates, a shell renderer, and two skills into both `~/.claude/` and `~/.codex/`. Runs in pure bash.
-- **`init` / `/init`** — a thin per-project command. Detects stack + context, invokes the shell renderer, and produces a full multi-agent project structure for both Claude and Codex entrypoints.
+- **`bootstrap.sh`** — a one-time global install. Copies templates, a shell renderer, and three skills into both `~/.claude/` and `~/.codex/`. Runs in pure bash.
+- **`init-project` / `/init-project`** — a thin per-project command. Detects stack + context, invokes the shell renderer, and produces a full multi-agent project structure for both Claude and Codex entrypoints.
 
-Every project initialised with `/init` gets:
+Every project initialised with `/init-project` gets:
 
 - **6 base agents** (product-owner, developer, designer, analyst, qa-reviewer, tech-lead), each with its own memory file
 - **4 workflows** (analyze-design-dev-review, bug-triage, spike-research, release)
@@ -13,7 +13,8 @@ Every project initialised with `/init` gets:
 - **Engineering spec** — Clean Architecture, 80% test coverage, Conventional Commits, trunk-based branching, ADRs, WCAG AA, OWASP baseline, structured observability
 - **Project memory** — `CLAUDE.md` + per-agent `memory.md` journals
 - **Blocking vs advisory enforcement** — tests/security/coverage are blocking; style is advisory
-- **Global sprint skill/command** to run any agent + workflow against a task
+- **Global sprint skill/command** to run any agent + workflow against a sprint task
+- **Global run-agent skill/command** to run any agent on an ad hoc task, with or without a workflow
 
 ## Install (once)
 
@@ -27,11 +28,11 @@ Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if s
 
 ```
 ~/.claude/
-├── skills/{init,sprint}/SKILL.md
+├── skills/{init-project,sprint,run-agent}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 
 ~/.codex/
-├── skills/{init,sprint}/SKILL.md
+├── skills/{init-project,sprint,run-agent}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 ```
 
@@ -42,15 +43,15 @@ cd ~/your-project
 claude
 
 # Greenfield with a vision file:
-/init ./vision.md
+/init-project ./vision.md
 
 # Existing codebase — auto-detects stack, auto-generates vision stub from README:
-/init
+/init-project
 
 # Re-run safely at any time — the renderer skips files that already exist.
 ```
 
-After `/init` completes, `/sprint` is already available (installed globally by `bootstrap.sh`):
+After `/init-project` completes, `/sprint` is already available (installed globally by `bootstrap.sh`):
 
 ```bash
 /sprint 001 developer    analyze-design-dev-review US-001
@@ -59,12 +60,86 @@ After `/init` completes, `/sprint` is already available (installed globally by `
 /sprint 001 tech-lead    release all
 ```
 
-Codex CLI can use the same generated project with:
+Codex CLI can use the same generated project with skills invoked via `$...`:
 
 ```text
-init [optional vision path]
-sprint 001 developer analyze-design-dev-review US-001
+$init-project ./vision.md
+$sprint 001 developer analyze-design-dev-review US-001
 ```
+
+Important:
+
+- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`
+- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`
+
+## Run A Specific Agent On A Task
+
+Once a project has been initialised, use the global `sprint` skill/command to run one agent on one task:
+
+```text
+sprint <sprint-number> <agent> <workflow> <task-id|all>
+```
+
+Meaning:
+
+- `sprint-number` — sprint file to use, for example `001`
+- `agent` — one of `product-owner`, `developer`, `designer`, `analyst`, `qa-reviewer`, `tech-lead`
+- `workflow` — one of `analyze-design-dev-review`, `bug-triage`, `spike-research`, `release`
+- `task-id` — a task identifier from `sprints/sprint-NNN.md`, or `all`
+
+Examples:
+
+```bash
+# Run the developer on task US-001 in sprint 001
+/sprint 001 developer analyze-design-dev-review US-001
+
+# Run the QA reviewer on the same task
+/sprint 001 qa-reviewer analyze-design-dev-review US-001
+
+# Run the product owner on a clarification/research task
+/sprint 001 product-owner spike-research US-001
+
+# Run one agent on every task in the sprint
+/sprint 001 developer analyze-design-dev-review all
+```
+
+Codex CLI uses the same arguments through the `$sprint` skill:
+
+```text
+$sprint 001 developer analyze-design-dev-review US-001
+```
+
+The command will load the project context (`AGENTS.md`, `.claude/CLAUDE.md`, vision, sprint, agent memory, workflow), validate that the task exists, then run the selected agent against that task only.
+
+## Run An Agent Outside Sprints
+
+Use `run-agent` when the work is project-scoped but not attached to `sprints/sprint-NNN.md`.
+
+```text
+run-agent <agent> [workflow] <task text>
+```
+
+Modes:
+
+- With a workflow: `run-agent developer analyze-design-dev-review Fix checkout race condition`
+- Without a workflow: `run-agent qa-reviewer Review recent checkout changes for regressions`
+
+Claude examples:
+
+```bash
+/run-agent developer analyze-design-dev-review "Fix checkout race condition"
+/run-agent analyst spike-research "Compare SSO providers for B2B customers"
+/run-agent qa-reviewer "Review recent checkout changes for regressions"
+```
+
+Codex CLI examples:
+
+```text
+$run-agent developer analyze-design-dev-review Fix checkout race condition
+$run-agent qa-reviewer Review recent checkout changes for regressions
+```
+
+`run-agent` loads the same project context as `sprint`, but it does not require a sprint number, does not require a task ID in `sprints/sprint-NNN.md`, and does not update sprint files.
 
 ## What gets created in a project
 
@@ -108,9 +183,9 @@ your-project/
 
 ## How the token-savings work
 
-Old model (single mega-skill): `/init` loaded ~900 lines of inline templates into context and re-typed every file. Slow, expensive, error-prone.
+Old model (single mega-skill): `/init-project` loaded ~900 lines of inline templates into context and re-typed every file. Slow, expensive, error-prone.
 
-New model: `bootstrap.sh` installs templates as plain files under each CLI home. `/init` only does the work that requires judgment: stack detection, vision-stub enrichment, and clarifications. All static generation is delegated to `bin/render-templates.sh`, which reads templates, substitutes `{{VARS}}`, and writes output files.
+New model: `bootstrap.sh` installs templates as plain files under each CLI home. `/init-project` only does the work that requires judgment: stack detection, vision-stub enrichment, and clarifications. All static generation is delegated to `bin/render-templates.sh`, which reads templates, substitutes `{{VARS}}`, and writes output files.
 
 ## Anti-hallucination guarantees
 
@@ -118,7 +193,7 @@ New model: `bootstrap.sh` installs templates as plain files under each CLI home.
 - Missing information becomes `⚠️ TO CLARIFY: <question>` — never invented
 - Vision file is copied verbatim, never summarised
 - Sprints are capped at 3–8 real tasks, never padded
-- Files have a `<!-- generated-by: /init -->` marker; the renderer refuses to overwrite existing files
+- Files have a generated marker; the renderer refuses to overwrite existing files
 
 ## Memory protocol
 
@@ -154,6 +229,6 @@ Pull a newer version of this repo and re-run `bash bootstrap.sh`. If the `VERSIO
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/agent-setup ~/.claude/skills/init ~/.claude/skills/sprint
-rm -rf ~/.codex/agent-setup ~/.codex/skills/init ~/.codex/skills/sprint
+rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint
+rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint
 ```

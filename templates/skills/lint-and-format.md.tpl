@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 <!-- vars: LINT_CMD, FORMAT_CMD -->
 # Skill: lint-and-format
 

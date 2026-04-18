@@ -1,4 +1,4 @@
-<!-- generated-by: /init | mode: auto-stub | needs-review: true -->
+<!-- generated-by: /init-project | mode: auto-stub | needs-review: true -->
 <!-- vars: PROJECT_NAME, STACK, ARCHITECTURE_STYLE, CI_STATUS, LINTERS, DETECTED_FEATURES_BLOCK -->
 
 # Product Vision — {{PROJECT_NAME}}

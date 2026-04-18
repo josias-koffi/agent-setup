@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 <!-- vars: TEST_CMD, COVERAGE_TOOL -->
 # Skill: run-tests
 

@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 <!-- vars: PROJECT_NAME, STACK_DETAILS, ARCHITECTURE_STYLE, LINT_CMD, FORMAT_CMD, TEST_CMD, BUILD_CMD, DEV_CMD -->
 # CLAUDE.md — {{PROJECT_NAME}}
 
@@ -52,6 +52,11 @@ See `spec/engineering-standards.md` for full rules.
 - Never check a sprint task box unless every acceptance criterion is verified
 - Never add features absent from `.project/vision.md` without explicit user approval
 - Never introduce a new framework without an ADR in `.project/decisions/`
+
+## Bootstrap a project
+```
+/init-project [optional-vision-file.md]
+```
 
 ## Run a sprint
 ```

@@ -1,4 +1,4 @@
-<!-- generated-by: /init | adapt to detected stack when possible -->
+<!-- generated-by: /init-project | adapt to detected stack when possible -->
 <!-- vars: STACK, COVERAGE_TOOL, TODAY_ISO -->
 # Engineering Standards
 

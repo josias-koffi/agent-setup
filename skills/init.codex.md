@@ -1,11 +1,11 @@
 ---
-name: init
+name: init-project
 description: >
-  Initialises or upgrades a project with a multi-agent structure (agents, workflows, skills, sprints, memory, and engineering spec). Works on greenfield projects AND existing codebases. Detects stack and conventions automatically. Use when the user says "init project", "set up agents", "bootstrap this repo", or runs init. Optional arg: path to a vision markdown file.
+  Initialises or upgrades a project with a multi-agent structure (agents, workflows, skills, sprints, memory, and engineering spec). Works on greenfield projects AND existing codebases. Detects stack and conventions automatically. Use when the user says "init project", "set up agents", "bootstrap this repo", or runs init-project. Optional arg: path to a vision markdown file.
 allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(git:*), Bash(date:*), Bash(env:*), Bash(${CODEX_HOME:-$HOME/.codex}/agent-setup/bin/render-templates.sh:*)
 ---
 
-# init — Multi-Agent Project Initialiser
+# init-project — Multi-Agent Project Initialiser
 
 You are setting up (or upgrading) a project with a reusable multi-agent structure. Almost all file generation is done by a shell renderer shipped with the framework. Your job is to detect context, invoke the renderer with the right env vars, and handle the small LLM-judgment pieces: vision stub, README append, and final report.
 
@@ -178,7 +178,7 @@ Surface stderr verbatim to the user on any non-zero exit, then STOP.
 
 ```bash
 if [ -f README.md ]; then
-    if ! grep -q '<!-- generated-by: /init -->' README.md; then
+    if ! grep -qE '<!-- generated-by: /(init|init-project) -->' README.md; then
         sed "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
             "${CODEX_HOME:-$HOME/.codex}/agent-setup/templates/readme-append.md.tpl" \
             >> README.md
@@ -239,4 +239,4 @@ Created:
 - [ ] Renderer exited 0 (any other exit = surface stderr and stop)
 - [ ] `state.json` parses as valid JSON (`jq . .project/state.json`)
 - [ ] Every `⚠️ TO CLARIFY` collected is in `state.json > clarifications_pending`
-- [ ] README has the `<!-- generated-by: /init -->` marker exactly once
+- [ ] README has a generated marker exactly once

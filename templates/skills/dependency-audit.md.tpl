@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 <!-- vars: AUDIT_CMD -->
 # Skill: dependency-audit
 

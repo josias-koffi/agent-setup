@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 ## Multi-Agent Workflow
 
 This project uses an agent-driven workflow. See:

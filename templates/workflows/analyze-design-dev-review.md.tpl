@@ -1,4 +1,4 @@
-<!-- generated-by: /init -->
+<!-- generated-by: /init-project -->
 # Workflow: Analyze → Design → Dev → Review
 
 ## Trigger

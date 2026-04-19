@@ -13,22 +13,26 @@
 #   /sprint 001 [task-id]
 #   /run-agent developer "Fix checkout race condition"
 #   /run-workflow analyze-design-dev-review US-001
+#   /upgrade-project
 #
 #   codex
 #   $init-project ./vision.md
 #   $sprint 001 [task-id]
 #   $run-agent developer Fix checkout race condition
 #   $run-workflow analyze-design-dev-review US-001
+#   $upgrade-project
 #
 # What gets installed:
 #   ~/.claude/skills/init-project/SKILL.md    — Claude /init-project skill
 #   ~/.claude/skills/sprint/SKILL.md          — Claude /sprint skill
 #   ~/.claude/skills/run-agent/SKILL.md       — Claude /run-agent skill
 #   ~/.claude/skills/run-workflow/SKILL.md    — Claude /run-workflow skill
+#   ~/.claude/skills/upgrade-project/SKILL.md — Claude /upgrade-project skill
 #   ~/.codex/skills/init-project/SKILL.md     — Codex init-project skill
 #   ~/.codex/skills/sprint/SKILL.md           — Codex sprint skill
 #   ~/.codex/skills/run-agent/SKILL.md        — Codex run-agent skill
 #   ~/.codex/skills/run-workflow/SKILL.md     — Codex run-workflow skill
+#   ~/.codex/skills/upgrade-project/SKILL.md  — Codex upgrade-project skill
 #   ~/.claude/agent-setup/VERSION             — Claude-installed framework version
 #   ~/.codex/agent-setup/VERSION              — Codex-installed framework version
 #   ~/.claude/agent-setup/bin/
@@ -84,10 +88,12 @@ for required in \
     skills/sprint.md \
     skills/run-agent.md \
     skills/run-workflow.md \
+    skills/upgrade-project.md \
     skills/init.codex.md \
     skills/sprint.codex.md \
     skills/run-agent.codex.md \
-    skills/run-workflow.codex.md; do
+    skills/run-workflow.codex.md \
+    skills/upgrade-project.codex.md; do
     if [ ! -e "$SCRIPT_DIR/$required" ]; then
         echo "bootstrap: missing $SCRIPT_DIR/$required — repo looks incomplete" >&2
         exit 1
@@ -101,6 +107,7 @@ install_target() {
     local sprint_skill_src="$4"
     local run_agent_skill_src="$5"
     local run_workflow_skill_src="$6"
+    local upgrade_skill_src="$7"
     local installed_version=""
 
     if [ -f "$dest/agent-setup/VERSION" ]; then
@@ -123,7 +130,8 @@ install_target() {
         "$dest/skills/init-project" \
         "$dest/skills/sprint" \
         "$dest/skills/run-agent" \
-        "$dest/skills/run-workflow"
+        "$dest/skills/run-workflow" \
+        "$dest/skills/upgrade-project"
 
     echo "Installing agent-setup $NEW_VERSION for $cli_name → $dest"
 
@@ -136,12 +144,13 @@ install_target() {
     run cp "$SCRIPT_DIR/$sprint_skill_src" "$dest/skills/sprint/SKILL.md"
     run cp "$SCRIPT_DIR/$run_agent_skill_src" "$dest/skills/run-agent/SKILL.md"
     run cp "$SCRIPT_DIR/$run_workflow_skill_src" "$dest/skills/run-workflow/SKILL.md"
+    run cp "$SCRIPT_DIR/$upgrade_skill_src" "$dest/skills/upgrade-project/SKILL.md"
 }
 
 install_target "Claude" "$CLAUDE_DEST" \
-    "skills/init.md" "skills/sprint.md" "skills/run-agent.md" "skills/run-workflow.md"
+    "skills/init.md" "skills/sprint.md" "skills/run-agent.md" "skills/run-workflow.md" "skills/upgrade-project.md"
 install_target "Codex" "$CODEX_DEST" \
-    "skills/init.codex.md" "skills/sprint.codex.md" "skills/run-agent.codex.md" "skills/run-workflow.codex.md"
+    "skills/init.codex.md" "skills/sprint.codex.md" "skills/run-agent.codex.md" "skills/run-workflow.codex.md" "skills/upgrade-project.codex.md"
 
 if [ "$DRY_RUN" = 1 ]; then
     echo
@@ -159,11 +168,13 @@ Installed under:
   CLAUDE_HOME/skills/sprint/SKILL.md          (Claude /sprint)
   CLAUDE_HOME/skills/run-agent/SKILL.md       (Claude /run-agent)
   CLAUDE_HOME/skills/run-workflow/SKILL.md    (Claude /run-workflow)
+  CLAUDE_HOME/skills/upgrade-project/SKILL.md (Claude /upgrade-project)
   CLAUDE_HOME/agent-setup/                    (Claude framework payload)
   CODEX_HOME/skills/init-project/SKILL.md     (Codex $init-project)
   CODEX_HOME/skills/sprint/SKILL.md           (Codex $sprint)
   CODEX_HOME/skills/run-agent/SKILL.md        (Codex $run-agent)
   CODEX_HOME/skills/run-workflow/SKILL.md     (Codex $run-workflow)
+  CODEX_HOME/skills/upgrade-project/SKILL.md  (Codex $upgrade-project)
   CODEX_HOME/agent-setup/                     (Codex framework payload)
 
 USAGE
@@ -178,6 +189,7 @@ USAGE
   /run-agent developer "Fix checkout race condition"
   /run-agent qa-reviewer "Review recent checkout changes for regressions"
   /run-workflow analyze-design-dev-review US-001
+  /upgrade-project
 
   codex
   $init-project ./vision.md
@@ -186,6 +198,7 @@ USAGE
   $run-agent developer Fix checkout race condition
   $run-agent qa-reviewer Review recent checkout changes for regressions
   $run-workflow analyze-design-dev-review US-001
+  $upgrade-project
 
 Reinstall later:
   bash bootstrap.sh --force   # backs up each installed target, then overwrites

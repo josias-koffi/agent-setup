@@ -54,9 +54,11 @@ $init-project [optional-vision-file.md]
 $sprint <sprint-number> [task-id]
 $run-agent <agent> <task text>
 $run-workflow <workflow> <task-id|task-text>
+$upgrade-project
 ```
 
 ## Command semantics
 - `$sprint` = sprint-scoped workflow orchestration using the workflow declared by each sprint task
 - `$run-agent` = ad hoc single-agent execution outside sprint files
 - `$run-workflow` = direct staged multi-agent orchestration with persisted handoff artifacts under `.project/workflows/`
+- `$upgrade-project` = safe preview-first migration for older initialized projects

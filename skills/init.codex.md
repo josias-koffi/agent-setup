@@ -1,13 +1,13 @@
 ---
 name: init-project
 description: >
-  Initialises or upgrades a project with a multi-agent structure (agents, workflows, skills, sprints, memory, and engineering spec). Works on greenfield projects AND existing codebases. Detects stack and conventions automatically. Use when the user says "init project", "set up agents", "bootstrap this repo", or runs init-project. Optional arg: path to a vision markdown file.
+  Initialises a project with a multi-agent structure (agents, workflows, skills, sprints, memory, and engineering spec). Works on greenfield projects AND existing codebases. Detects stack and conventions automatically. Use when the user says "init project", "set up agents", "bootstrap this repo", or runs init-project. Optional arg: path to a vision markdown file.
 allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(git:*), Bash(date:*), Bash(env:*), Bash(${CODEX_HOME:-$HOME/.codex}/agent-setup/bin/render-templates.sh:*)
 ---
 
 # init-project — Multi-Agent Project Initialiser
 
-You are setting up (or upgrading) a project with a reusable multi-agent structure. Almost all file generation is done by a shell renderer shipped with the framework. Your job is to detect context, invoke the renderer with the right env vars, and handle the small LLM-judgment pieces: vision stub, README append, and final report.
+You are setting up a project with a reusable multi-agent structure. Almost all file generation is done by a shell renderer shipped with the framework. Your job is to detect context, invoke the renderer with the right env vars, and handle the small LLM-judgment pieces: vision stub, README append, and final report.
 
 ## Parameters
 - `$ARGUMENTS[0]` = path to a vision markdown file (optional)
@@ -17,7 +17,7 @@ You are setting up (or upgrading) a project with a reusable multi-agent structur
 1. Every task, epic, user story, specialised agent, or specific workflow must cite `.project/vision.md` with `(source: vision section)`.
 2. Unknown information becomes `TO CLARIFY`. Never invent.
 3. Only add files under `.claude/`, `.project/`, `AGENTS.md`, or `agent-setup/`.
-4. Be idempotent. Never overwrite existing generated files unless the user explicitly asks.
+4. Be idempotent. Never overwrite existing generated files unless the user explicitly asks. Existing projects that need generated-file migration must use `upgrade-project`.
 5. Match the language of the vision file or README.
 6. Use only technologies detected in the codebase or explicitly stated in the vision.
 
@@ -116,7 +116,8 @@ Recommend next actions in this order:
 2. Fill any `TO CLARIFY` commands in `AGENTS.md` and `.claude/CLAUDE.md`
 3. Review `agent-setup/spec/engineering-standards.md`
 4. Review `.project/sprints/sprint-001.md`
-5. Run `$sprint 001` for single-agent task execution or `$run-workflow <workflow> <task-id>` for staged orchestration
+5. Run `$upgrade-project` first if this repository was initialized by an older framework version
+6. Run `$sprint 001` for sprint-scoped orchestration or `$run-workflow <workflow> <task-id|task-text>` for direct staged orchestration
 
 ## Final self-check
 

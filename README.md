@@ -7,6 +7,7 @@ A two-layer system with dual CLI support:
 - `sprint` is the sprint-scoped entrypoint and follows the workflow declared by each sprint task.
 - `run-agent` runs an ad hoc task as a single-agent execution.
 - `run-workflow` orchestrates a staged multi-agent workflow directly, outside the sprint entrypoint.
+- `upgrade-project` safely migrates previously initialized projects to the latest generated format.
 
 ## Install Once
 
@@ -20,11 +21,11 @@ Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if s
 
 ```text
 ~/.claude/
-├── skills/{init-project,sprint,run-agent,run-workflow}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 
 ~/.codex/
-├── skills/{init-project,sprint,run-agent,run-workflow}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 ```
 
@@ -48,10 +49,12 @@ $init-project ./vision.md
 
 Important:
 
-- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`
-- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`
+- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`, `/upgrade-project`
+- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`, `$upgrade-project`
 
 If you do not pass a vision file, `init-project` auto-generates `.project/vision.md` from detected context.
+
+Important: `init-project` does not overwrite existing generated files. Use `upgrade-project` to migrate older initialized projects.
 
 ## Project Layout
 
@@ -167,6 +170,33 @@ Behavior:
 - no workflow argument
 - no persisted multi-agent handoffs
 
+### `upgrade-project`
+
+Use `upgrade-project` for repositories already initialized by an older framework version.
+
+```text
+upgrade-project
+```
+
+Examples in Claude:
+
+```bash
+/upgrade-project
+```
+
+Examples in Codex:
+
+```text
+$upgrade-project
+```
+
+Behavior:
+- preview-first migration
+- targets only core generated files
+- creates dated backups under `.project/upgrades/<timestamp>/` before overwrite
+- updates workflows, session entry docs, state fields, and the generated README block when needed
+- asks before replacing ambiguous or user-modified files
+
 ### `run-workflow`
 
 Use `run-workflow` for direct multi-agent orchestration outside the sprint entrypoint.
@@ -230,9 +260,21 @@ After acting, the agent appends a dated entry to its memory file.
 bash bootstrap.sh --force
 ```
 
+For older initialized projects:
+
+```bash
+/upgrade-project
+```
+
+or in Codex:
+
+```text
+$upgrade-project
+```
+
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent ~/.claude/skills/run-workflow
-rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent ~/.codex/skills/run-workflow
+rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent ~/.claude/skills/run-workflow ~/.claude/skills/upgrade-project
+rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent ~/.codex/skills/run-workflow ~/.codex/skills/upgrade-project
 ```

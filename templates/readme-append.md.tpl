@@ -20,3 +20,8 @@ Run direct workflow orchestration:
 ```text
 /run-workflow analyze-design-dev-review US-001
 ```
+
+Migrate an older initialized project:
+```text
+/upgrade-project
+```

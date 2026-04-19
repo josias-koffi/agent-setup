@@ -128,20 +128,20 @@ if [ "$DRY_RUN" = 1 ]; then
     exit 0
 fi
 
-cat <<BANNER
+cat <<'BANNER'
 
 ─────────────────────────────────────────────────────────────
-✅ agent-setup $NEW_VERSION installed.
+✅ agent-setup installed.
 
 Installed under:
-  $CLAUDE_DEST/skills/init-project/SKILL.md (Claude /init-project)
-  $CLAUDE_DEST/skills/sprint/SKILL.md (Claude /sprint)
-  $CLAUDE_DEST/skills/run-agent/SKILL.md (Claude /run-agent)
-  $CLAUDE_DEST/agent-setup/           (Claude framework payload)
-  $CODEX_DEST/skills/init-project/SKILL.md (Codex init-project skill)
-  $CODEX_DEST/skills/sprint/SKILL.md  (Codex sprint skill)
-  $CODEX_DEST/skills/run-agent/SKILL.md (Codex run-agent skill)
-  $CODEX_DEST/agent-setup/            (Codex framework payload)
+  CLAUDE_HOME/skills/init-project/SKILL.md (Claude /init-project)
+  CLAUDE_HOME/skills/sprint/SKILL.md (Claude /sprint)
+  CLAUDE_HOME/skills/run-agent/SKILL.md (Claude /run-agent)
+  CLAUDE_HOME/agent-setup/           (Claude framework payload)
+  CODEX_HOME/skills/init-project/SKILL.md (Codex init-project skill)
+  CODEX_HOME/skills/sprint/SKILL.md  (Codex sprint skill)
+  CODEX_HOME/skills/run-agent/SKILL.md (Codex run-agent skill)
+  CODEX_HOME/agent-setup/            (Codex framework payload)
 
 USAGE
 ─────────────────────────────────────────────────────────────

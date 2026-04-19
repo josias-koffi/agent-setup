@@ -3,8 +3,7 @@
 # render-templates.sh — copy and interpolate agent-setup templates into a project
 #
 # Usage:
-#   env PROJECT_NAME=foo STACK=node LINT_CMD='npm run lint' ... \
-#       render-templates.sh /path/to/project
+#   env PROJECT_NAME=foo STACK=node LINT_CMD='npm run lint' ... #       render-templates.sh /path/to/project
 #
 # Template source: the installed framework root next to this script, or
 # ${AGENT_SETUP_HOME}/agent-setup/templates when explicitly provided.
@@ -43,19 +42,13 @@ if [ ! -d "$TPL_ROOT" ]; then
     exit 2
 fi
 
-# Required vars — must be set by caller before invocation.
-# (Unset = exit 3 up-front; empty string is allowed but surfaces as empty in output.)
 REQUIRED_VARS=(
     PROJECT_NAME PROJECT_TYPE STACK STACK_DETAILS ARCHITECTURE_STYLE
     LINT_CMD FORMAT_CMD TEST_CMD BUILD_CMD DEV_CMD AUDIT_CMD
     COVERAGE_TOOL CI_STATUS LINTERS TODAY_ISO TODAY_PLUS_14
     VISION_MODE DETECTED_FEATURES_BLOCK CLARIFICATIONS_JSON_ARRAY
 )
-
-# Role-scoped vars are set inside the agent loop, not by the caller.
 ROLE_VARS=(ROLE_NAME ROLE_TITLE)
-
-# All substitutable vars (checked for leftover {{VAR}} after rendering).
 VARS=("${REQUIRED_VARS[@]}" "${ROLE_VARS[@]}")
 
 missing=()
@@ -91,7 +84,7 @@ render_one() {
     local var val
     for var in "${VARS[@]}"; do
         if [ -z "${!var+x}" ]; then
-            continue  # ROLE_* unset outside agent loop — fine
+            continue
         fi
         val="${!var}"
         content="${content//"{{$var}}"/$val}"
@@ -103,38 +96,34 @@ render_one() {
         return 3
     fi
 
-    printf '%s\n' "$content" >"$target_abs" || return 4
+    printf '%s
+' "$content" >"$target_abs" || return 4
     echo "WROTE: $target"
 }
 
-# ─── 1:1 mappings ────────────────────────────────────────────────────────────
-render_one "$TPL_ROOT/claude/CLAUDE.md.tpl"                ".claude/CLAUDE.md"
-render_one "$TPL_ROOT/codex/AGENTS.md.tpl"                 "AGENTS.md"
-render_one "$TPL_ROOT/project/state.json.tpl"              ".project/state.json"
-render_one "$TPL_ROOT/spec/engineering-standards.md.tpl"   "agent-setup/spec/engineering-standards.md"
-render_one "$TPL_ROOT/sprints/backlog.md.tpl"              ".project/sprints/backlog.md"
-render_one "$TPL_ROOT/sprints/sprint-001.md.tpl"           ".project/sprints/sprint-001.md"
+render_one "$TPL_ROOT/claude/CLAUDE.md.tpl"              ".claude/CLAUDE.md"
+render_one "$TPL_ROOT/codex/AGENTS.md.tpl"               "AGENTS.md"
+render_one "$TPL_ROOT/project/state.json.tpl"            ".project/state.json"
+render_one "$TPL_ROOT/spec/engineering-standards.md.tpl" "agent-setup/spec/engineering-standards.md"
+render_one "$TPL_ROOT/sprints/backlog.md.tpl"            ".project/sprints/backlog.md"
+render_one "$TPL_ROOT/sprints/sprint-001.md.tpl"         ".project/sprints/sprint-001.md"
 
-# ─── Vision auto-stub (only when /init decided we need one) ──────────────────
 if [ "${VISION_MODE:-}" = "auto-stub" ]; then
     render_one "$TPL_ROOT/project/vision.auto-stub.md.tpl" ".project/vision.md"
 fi
 
-# ─── Workflows (glob all) ────────────────────────────────────────────────────
 for tpl in "$TPL_ROOT/workflows/"*.md.tpl; do
     [ -f "$tpl" ] || continue
     base="$(basename "$tpl" .tpl)"
     render_one "$tpl" "agent-setup/workflows/$base"
 done
 
-# ─── Skills (glob all) ───────────────────────────────────────────────────────
 for tpl in "$TPL_ROOT/skills/"*.md.tpl; do
     [ -f "$tpl" ] || continue
     base="$(basename "$tpl" .tpl)"
     render_one "$tpl" "agent-setup/skills/$base"
 done
 
-# ─── Agents: 6 roles × (agent.md + memory.md) ────────────────────────────────
 ROLES=(product-owner developer designer analyst qa-reviewer tech-lead)
 role_title_for() {
     case "$1" in
@@ -155,8 +144,7 @@ for role in "${ROLES[@]}"; do
     render_one "$TPL_ROOT/agents/_memory.md.tpl"     "agent-setup/agents/$role/memory.md"
 done
 
-# Create the specialized/ placeholder directory (no template inside).
 mkdir -p "$OUT_DIR/agent-setup/agents/specialized"
-mkdir -p "$OUT_DIR/.project/"{decisions,designs,spikes,releases}
+mkdir -p "$OUT_DIR/.project/"{decisions,designs,spikes,releases,sprints,workflows}
 
 echo "render-templates: done"

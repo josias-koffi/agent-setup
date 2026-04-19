@@ -1,44 +1,28 @@
 ---
 name: sprint
 description: >
-  Runs sprint tasks by inferring the assigned agent and workflow from the sprint file, with optional explicit overrides. Preferred args: sprint-number [task-id|all]. Optional overrides: agent workflow.
+  Runs sprint tasks by inferring the assigned workflow from the sprint file, with optional explicit overrides. Preferred args: sprint-number [task-id|all]. Optional override: workflow.
 allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest:*), Bash(go:*)
 ---
 
 # sprint runner
 
+## Purpose
+
+`sprint` is the sprint-scoped orchestrator. It resolves the target task or tasks from the sprint file, reads the workflow declared by each task, and executes that workflow stage by stage. When the workflow contains multiple agents, `sprint` must orchestrate the handoff between them through `.project/workflows/<run-id>/` artifacts.
+
+Use `$run-agent` only for ad hoc mono-agent work outside sprint files.
+Use `$run-workflow` when you want direct workflow orchestration without entering through a sprint.
+
 ## Arguments
-- `$ARGUMENTS[0]` = sprint number, zero-padded (e.g. `001`)
+- `$ARGUMENTS[0]` = sprint number, zero-padded (for example `001`)
 - `$ARGUMENTS[1]` = optional task ID such as `US-001`, or `all`
-- `$ARGUMENTS[2]` = optional agent name override
-- `$ARGUMENTS[3]` = optional workflow name override
+- `$ARGUMENTS[2]` = optional workflow override
 
 ## Supported invocation forms
-
-### 1. Sprint only
-Example:
-- `sprint 001`
-
-Meaning:
-- load `.project/sprints/sprint-001.md`
-- run every runnable task in that sprint
-- for each task, read its `Agent:` and `Workflow:` lines from the sprint file
-
-### 2. One task with inferred agent/workflow
-Example:
-- `sprint 001 US-001`
-
-Meaning:
-- load task `US-001` from `.project/sprints/sprint-001.md`
-- infer the assigned agent and workflow from the task block itself
-
-### 3. Explicit override form
-Example:
-- `sprint 001 US-001 developer analyze-design-dev-review`
-
-Meaning:
-- load task `US-001`
-- force the provided agent and workflow instead of the values declared in the sprint file
+- `$sprint 001`
+- `$sprint 001 US-001`
+- `$sprint 001 US-001 analyze-design-dev-review`
 
 ## Strict sequence
 
@@ -51,45 +35,53 @@ Meaning:
 - `.project/sprints/sprint-$ARGUMENTS[0].md`
 
 ### 2. Resolve execution scope
-- If only the sprint number is provided, target every runnable task in the sprint.
-- If a task ID is provided, target only that task.
-- For each targeted task, parse:
-  - `Agent: <role>`
-  - `Workflow: <name>`
-- If `$ARGUMENTS[2]` and `$ARGUMENTS[3]` are both present, use them as overrides.
-- If the task does not declare an agent or workflow and no override was provided, STOP and report the missing metadata.
+- With only the sprint number, target every runnable task in the sprint.
+- With a task ID, target only that task.
+- For each targeted task, parse its title, acceptance criteria, and `Workflow:` line.
+- If `$ARGUMENTS[2]` is present, use it as the workflow override.
+- If a targeted task has no workflow and no override was provided, stop and report the missing metadata.
 
-### 3. Validate (STOP on failure)
-- Every required project file exists.
-- Target task exists when a task ID was requested.
-- Each targeted task is not already fully checked.
-- Resolved agent exists under `agent-setup/agents/<agent>/agent.md`.
-- Resolved workflow exists under `agent-setup/workflows/<workflow>.md`.
-- Report the resolved execution plan before continuing.
+### 3. Validate
+Stop on failure if:
+- required project files are missing
+- the requested sprint file or task does not exist
+- the resolved workflow is missing
+- the workflow file is not in explicit stage format with `Agent:`, `Inputs:`, `Outputs:`, `Pass:`, and `OnFailure:` per stage
+- a targeted task is already fully checked
 
-### 4. Run workflow
+### 4. Orchestrate the workflow
 For each targeted task:
-- Load `agent-setup/agents/<agent>/agent.md`
-- Load `agent-setup/agents/<agent>/memory.md`
-- Load `agent-setup/workflows/<workflow>.md`
-- Load referenced skills from `agent-setup/skills/`.
-- Execute each workflow step in order.
-- Verify the pass criterion.
-- **Blocking rule fails** → STOP, report, go to rollback point.
-- **Advisory rule fails** → warn, continue, log in sprint file.
+- create `.project/workflows/<run-id>/`
+- write the task context to `.project/workflows/<run-id>/task.md`
+- load the resolved workflow stages from `agent-setup/workflows/<workflow>.md`
+- for each stage:
+  - load `agent-setup/agents/<stage-agent>/agent.md`
+  - load `agent-setup/agents/<stage-agent>/memory.md`
+  - load all prior stage artifacts from `.project/workflows/<run-id>/`
+  - execute the current stage with that agent persona
+  - write the declared output artifact
+  - update `.project/state.json > last_workflow_stage`
+  - append a dated entry to that agent's memory file
+- on blocking failure, stop immediately, record the failure in `final-summary.md`, and do not tick the sprint task
 
 ### 5. Update sprint file
-Tick checkboxes only when every acceptance criterion is verified.
+Tick checkboxes only when every acceptance criterion is explicitly verified by the orchestrated workflow output.
 
 ### 6. Update `.project/state.json`
-- `last_updated` = ISO 8601 now
+- `last_updated` = ISO now
 - `last_workflow_run` = resolved workflow for the last completed task
-- `last_task_completed` = last completed task ID, or `all` when the whole sprint run completed
-- If sprint DoD fully met, push sprint number into `completed_sprints`.
+- `last_task_completed` = last completed task ID, or `all`
+- `last_workflow_result` = `passed` or `failed`
+- clear `active_workflow_run` at the end of each task run
+- add the sprint number to `completed_sprints` only if sprint DoD is fully met
 
-### 7. Update agent memory
-For each agent that actually ran, append a dated entry to `agent-setup/agents/<agent>/memory.md`:
-- Did / Why / Learned / Open
-
-### 8. Report
-Sprint / Targeted tasks / Resolved agent-workflow pairs / Steps completed / Blocking verdict / Advisory warnings / Next action.
+### 7. Report
+Include:
+- sprint number
+- targeted tasks
+- resolved workflow per task
+- run ID per task
+- stage-by-stage verdicts
+- artifact location under `.project/workflows/`
+- final verdict
+- next action

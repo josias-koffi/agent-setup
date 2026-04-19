@@ -4,8 +4,9 @@ A two-layer system with dual CLI support:
 
 - `bootstrap.sh` installs the reusable framework globally into `~/.claude/` and `~/.codex/`.
 - `init-project` initializes one specific repository by generating a local project workspace around your vision file.
-- `sprint` runs an agent on a sprint task.
-- `run-agent` runs an agent on an ad hoc task, with or without a workflow.
+- `sprint` is the sprint-scoped entrypoint and follows the workflow declared by each sprint task.
+- `run-agent` runs an ad hoc task as a single-agent execution.
+- `run-workflow` orchestrates a staged multi-agent workflow directly, outside the sprint entrypoint.
 
 ## Install Once
 
@@ -19,11 +20,11 @@ Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if s
 
 ```text
 ~/.claude/
-├── skills/{init-project,sprint,run-agent}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 
 ~/.codex/
-├── skills/{init-project,sprint,run-agent}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 ```
 
@@ -47,8 +48,8 @@ $init-project ./vision.md
 
 Important:
 
-- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`
-- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`
+- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`
+- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`
 
 If you do not pass a vision file, `init-project` auto-generates `.project/vision.md` from detected context.
 
@@ -66,9 +67,14 @@ your-project/
 │   ├── designs/
 │   ├── spikes/
 │   ├── releases/
-│   └── sprints/
-│       ├── backlog.md
-│       └── sprint-001.md
+│   ├── sprints/
+│   │   ├── backlog.md
+│   │   └── sprint-001.md
+│   └── workflows/
+│       └── <run-id>/
+│           ├── task.md
+│           ├── 01-*.md
+│           └── final-summary.md
 └── agent-setup/
     ├── spec/
     │   └── engineering-standards.md
@@ -95,42 +101,28 @@ your-project/
 
 Rationale:
 
-- `.project/` keeps product/project state together, including sprints.
-- `agent-setup/` groups the operational workspace generated for agents.
+- `.project/` keeps product state, sprint state, and workflow-run artifacts together.
+- `agent-setup/` keeps reusable operational definitions together.
 - the project root stays cleaner.
 
-## Run A Sprint Task
+## Execution Modes
+
+### `sprint`
 
 Use `sprint` when the task exists in `.project/sprints/sprint-NNN.md`.
 
-Preferred forms:
-
 ```text
 sprint <sprint-number>
 sprint <sprint-number> <task-id>
-```
-
-Because each sprint task already declares its `Agent:` and `Workflow:`, `sprint` can infer them directly from the sprint file.
-
-Supported forms:
-
-```text
-sprint <sprint-number>
-sprint <sprint-number> <task-id>
-sprint <sprint-number> <task-id> <agent> <workflow>
+sprint <sprint-number> <task-id> <workflow>
 ```
 
 Examples in Claude:
 
 ```bash
-# Run every task in sprint 001 using each task's Agent/Workflow
 /sprint 001
-
-# Run only task US-001 using the Agent/Workflow declared in the sprint file
 /sprint 001 US-001
-
-# Optional explicit override form
-/sprint 001 US-001 developer analyze-design-dev-review
+/sprint 001 US-001 analyze-design-dev-review
 ```
 
 Examples in Codex:
@@ -140,53 +132,92 @@ $sprint 001
 $sprint 001 US-001
 ```
 
-## Run An Ad Hoc Task Outside Sprints
+Behavior:
+- sprint-scoped
+- workflow inferred from the sprint task, with optional explicit workflow override
+- multi-agent orchestration when the workflow contains multiple agent stages
+- handoff artifacts persisted under `.project/workflows/<run-id>/`
+- sprint task checkboxes updated only after explicit acceptance verification
 
-Use `run-agent` when the task is not tied to `.project/sprints/sprint-NNN.md`.
+### `run-agent`
+
+Use `run-agent` for an ad hoc task outside sprint files.
 
 ```text
 run-agent <agent> [workflow] <task text>
 ```
 
-With a workflow:
-
-Claude:
+Examples in Claude:
 
 ```bash
 /run-agent developer analyze-design-dev-review "Fix checkout race condition"
-/run-agent analyst spike-research "Compare SSO providers for B2B customers"
-```
-
-Codex:
-
-```text
-$run-agent developer analyze-design-dev-review Fix checkout race condition
-```
-
-Without a workflow:
-
-Claude:
-
-```bash
 /run-agent qa-reviewer "Review recent checkout changes for regressions"
 ```
 
-Codex:
+Examples in Codex:
 
 ```text
+$run-agent developer analyze-design-dev-review Fix checkout race condition
 $run-agent qa-reviewer Review recent checkout changes for regressions
 ```
 
-`run-agent` loads the same project context as `sprint`, but it does not require a sprint number, does not require a task ID, and does not update sprint files.
+Behavior:
+- ad hoc
+- single-agent only
+- optional workflow guidance
+- no persisted multi-agent handoffs
+
+### `run-workflow`
+
+Use `run-workflow` for direct multi-agent orchestration outside the sprint entrypoint.
+
+```text
+run-workflow <workflow> <task-id|task-text>
+```
+
+Examples in Claude:
+
+```bash
+/run-workflow analyze-design-dev-review US-005
+/run-workflow spike-research "Compare hosting options for the API"
+```
+
+Examples in Codex:
+
+```text
+$run-workflow analyze-design-dev-review US-005
+$run-workflow spike-research Compare hosting options for the API
+```
+
+Behavior:
+- staged multi-agent execution
+- reads explicit workflow stages from `agent-setup/workflows/*.md`
+- persists handoff artifacts under `.project/workflows/<run-id>/`
+- updates workflow run state in `.project/state.json`
+- stops on blocking stage failures
+
+## Workflow Format
+
+Workflow definitions are project-level files under `agent-setup/workflows/`.
+Each stage must declare these fields explicitly:
+
+- `Agent:`
+- `Inputs:`
+- `Outputs:`
+- `Pass:`
+- `OnFailure:`
+
+This explicit format is required for both `sprint` and `run-workflow`. Prose-only workflow files are not orchestration-safe.
 
 ## Memory Protocol
 
-Every agent, before acting:
+Every agent, before substantial work:
 
 1. Reads `AGENTS.md` or `.claude/CLAUDE.md`
 2. Reads its own `agent-setup/agents/<role>/memory.md`
 3. Reads `agent-setup/spec/engineering-standards.md`
-4. Reads the relevant sprint file under `.project/sprints/` when the task is sprint-based
+4. Reads the relevant sprint file when the task is sprint-based
+5. Reads prior `.project/workflows/<run-id>/` artifacts when the task is workflow-orchestrated
 
 After acting, the agent appends a dated entry to its memory file.
 
@@ -199,6 +230,6 @@ bash bootstrap.sh --force
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent
-rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent
+rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent ~/.claude/skills/run-workflow
+rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent ~/.codex/skills/run-workflow
 ```

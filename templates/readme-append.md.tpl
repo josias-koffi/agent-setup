@@ -6,10 +6,17 @@ This project uses an agent-driven workflow. See:
 - `AGENTS.md` — entry point for Codex CLI sessions
 - `agent-setup/spec/engineering-standards.md` — non-negotiable engineering rules
 - `agent-setup/agents/<role>/` — agent definitions and memory
-- `agent-setup/workflows/` — named workflows (analyze-design-dev-review, bug-triage, spike-research, release)
-- `.project/sprints/` — backlog and active sprint files
+- `agent-setup/workflows/` — named workflow definitions
+- `.project/sprints/` — backlog and sprint files
+- `.project/workflows/` — persisted workflow-run artifacts and handoffs
 
-Run a sprint:
+Run sprint-scoped orchestration:
+```text
+/sprint 001
+/sprint 001 US-001
 ```
-/sprint 001 developer analyze-design-dev-review US-001
+
+Run direct workflow orchestration:
+```text
+/run-workflow analyze-design-dev-review US-001
 ```

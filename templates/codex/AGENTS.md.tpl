@@ -9,6 +9,7 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 - Vision: `.project/vision.md` (source of truth, never auto-edit)
 - State: `.project/state.json`
 - Engineering spec: `agent-setup/spec/engineering-standards.md`
+- Workflow artifacts: `.project/workflows/`
 
 ## Stack
 - {{STACK_DETAILS}}
@@ -26,7 +27,8 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 2. `.claude/CLAUDE.md`
 3. `agent-setup/agents/<own-role>/memory.md`
 4. `agent-setup/spec/engineering-standards.md`
-5. the relevant sprint file under `.project/sprints/`
+5. the relevant sprint file when the task is sprint-based
+6. `.project/workflows/<run-id>/` artifacts when the task is workflow-orchestrated
 
 ## Agent roles
 - Product Owner: `agent-setup/agents/product-owner/`
@@ -44,18 +46,17 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 - Never introduce a new framework without an ADR in `.project/decisions/`
 
 ## Memory protocol
-After completing a task, append a dated entry to `agent-setup/agents/<own-role>/memory.md` covering what was done, why, what was learned, and open questions.
+After completing a task or workflow stage, append a dated entry to `agent-setup/agents/<own-role>/memory.md`.
 
-## Sprint workflow
-Use the installed `sprint` skill with:
-
+## Project commands
 ```text
-sprint <sprint-number> <agent> <workflow> <task-id|all>
+$init-project [optional-vision-file.md]
+$sprint <sprint-number> [task-id]
+$run-agent <agent> [workflow] <task text>
+$run-workflow <workflow> <task-id|task-text>
 ```
 
-## Bootstrap workflow
-Use the installed `init-project` skill with:
-
-```text
-init-project [optional-vision-file.md]
-```
+## Command semantics
+- `$sprint` = sprint-scoped workflow orchestration using the workflow declared by each sprint task
+- `$run-agent` = ad hoc single-agent execution outside sprint files
+- `$run-workflow` = direct staged multi-agent orchestration with persisted handoff artifacts under `.project/workflows/`

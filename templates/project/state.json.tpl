@@ -15,5 +15,9 @@
   "clarifications_pending": {{CLARIFICATIONS_JSON_ARRAY}},
   "last_updated": "{{TODAY_ISO}}",
   "last_workflow_run": null,
+  "last_workflow_stage": null,
+  "last_workflow_result": null,
+  "active_workflow_run": null,
+  "workflow_runs": [],
   "last_task_completed": null
 }

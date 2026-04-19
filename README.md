@@ -103,22 +103,41 @@ Rationale:
 
 Use `sprint` when the task exists in `.project/sprints/sprint-NNN.md`.
 
+Preferred forms:
+
 ```text
-sprint <sprint-number> <agent> <workflow> <task-id|all>
+sprint <sprint-number>
+sprint <sprint-number> <task-id>
 ```
 
-Claude examples:
+Because each sprint task already declares its `Agent:` and `Workflow:`, `sprint` can infer them directly from the sprint file.
+
+Supported forms:
+
+```text
+sprint <sprint-number>
+sprint <sprint-number> <task-id>
+sprint <sprint-number> <task-id> <agent> <workflow>
+```
+
+Examples in Claude:
 
 ```bash
-/sprint 001 developer analyze-design-dev-review US-001
-/sprint 001 qa-reviewer analyze-design-dev-review US-001
-/sprint 001 developer analyze-design-dev-review all
+# Run every task in sprint 001 using each task's Agent/Workflow
+/sprint 001
+
+# Run only task US-001 using the Agent/Workflow declared in the sprint file
+/sprint 001 US-001
+
+# Optional explicit override form
+/sprint 001 US-001 developer analyze-design-dev-review
 ```
 
-Codex example:
+Examples in Codex:
 
 ```text
-$sprint 001 developer analyze-design-dev-review US-001
+$sprint 001
+$sprint 001 US-001
 ```
 
 ## Run An Ad Hoc Task Outside Sprints

@@ -12,11 +12,16 @@ allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest
 `run-workflow` is the dedicated multi-agent orchestrator. It executes one workflow stage at a time, with the agent assigned to that stage, and persists handoff artifacts so the next agent reads concrete prior output.
 
 Use `/run-workflow` for true agent chaining.
-Use `/sprint` or `/run-agent` for single-agent execution.
+Use `/sprint` for sprint-scoped workflow execution.
+Use `/run-agent` for single-agent execution.
 
 ## Arguments
 - `$ARGUMENTS[0]` = workflow name, for example `analyze-design-dev-review`
 - `$ARGUMENTS[1...]` = task reference or free-form task text
+
+Examples:
+- `/run-workflow analyze-design-dev-review US-005`
+- `/run-workflow analyze-design-dev-review fix auth error when using social auth`
 
 ## Task resolution
 
@@ -105,6 +110,7 @@ Include:
 - workflow name
 - run ID
 - task source: sprint task or ad hoc
+- task text or task ID
 - stage-by-stage verdicts
 - location of artifacts under `.project/workflows/<run-id>/`
 - final verdict

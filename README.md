@@ -144,27 +144,27 @@ Behavior:
 Use `run-agent` for an ad hoc task outside sprint files.
 
 ```text
-run-agent <agent> [workflow] <task text>
+run-agent <agent> <task text>
 ```
 
 Examples in Claude:
 
 ```bash
-/run-agent developer analyze-design-dev-review "Fix checkout race condition"
+/run-agent developer "Fix checkout race condition"
 /run-agent qa-reviewer "Review recent checkout changes for regressions"
 ```
 
 Examples in Codex:
 
 ```text
-$run-agent developer analyze-design-dev-review Fix checkout race condition
+$run-agent developer Fix checkout race condition
 $run-agent qa-reviewer Review recent checkout changes for regressions
 ```
 
 Behavior:
 - ad hoc
 - single-agent only
-- optional workflow guidance
+- no workflow argument
 - no persisted multi-agent handoffs
 
 ### `run-workflow`
@@ -179,6 +179,7 @@ Examples in Claude:
 
 ```bash
 /run-workflow analyze-design-dev-review US-005
+/run-workflow analyze-design-dev-review "fix auth error when using social auth"
 /run-workflow spike-research "Compare hosting options for the API"
 ```
 
@@ -186,11 +187,13 @@ Examples in Codex:
 
 ```text
 $run-workflow analyze-design-dev-review US-005
+$run-workflow analyze-design-dev-review fix auth error when using social auth
 $run-workflow spike-research Compare hosting options for the API
 ```
 
 Behavior:
 - staged multi-agent execution
+- accepts either a sprint task ID or a free-form task text
 - reads explicit workflow stages from `agent-setup/workflows/*.md`
 - persists handoff artifacts under `.project/workflows/<run-id>/`
 - updates workflow run state in `.project/state.json`

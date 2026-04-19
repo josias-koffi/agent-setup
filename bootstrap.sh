@@ -11,13 +11,13 @@
 #   claude
 #   /init-project [optional: vision-file.md]
 #   /sprint 001 [task-id]
-#   /run-agent developer [workflow] "task text"
+#   /run-agent developer "Fix checkout race condition"
 #   /run-workflow analyze-design-dev-review US-001
 #
 #   codex
 #   $init-project ./vision.md
 #   $sprint 001 [task-id]
-#   $run-agent developer analyze-design-dev-review Fix checkout race condition
+#   $run-agent developer Fix checkout race condition
 #   $run-workflow analyze-design-dev-review US-001
 #
 # What gets installed:
@@ -175,7 +175,7 @@ USAGE
   /init-project ./vision.md
   /sprint 001
   /sprint 001 US-001
-  /run-agent developer analyze-design-dev-review "Fix checkout race condition"
+  /run-agent developer "Fix checkout race condition"
   /run-agent qa-reviewer "Review recent checkout changes for regressions"
   /run-workflow analyze-design-dev-review US-001
 
@@ -183,7 +183,7 @@ USAGE
   $init-project ./vision.md
   $sprint 001
   $sprint 001 US-001
-  $run-agent developer analyze-design-dev-review Fix checkout race condition
+  $run-agent developer Fix checkout race condition
   $run-agent qa-reviewer Review recent checkout changes for regressions
   $run-workflow analyze-design-dev-review US-001
 

@@ -52,7 +52,7 @@ After completing a task or workflow stage, append a dated entry to `agent-setup/
 ```text
 $init-project [optional-vision-file.md]
 $sprint <sprint-number> [task-id]
-$run-agent <agent> [workflow] <task text>
+$run-agent <agent> <task text>
 $run-workflow <workflow> <task-id|task-text>
 ```
 

@@ -22,13 +22,23 @@ Example:
 ## Strict sequence
 
 ### 1. Load context
+
+Load in this order to maximise prompt-cache hits (stable content first, dynamic last).
+
+**Static — load first (cache candidates for Claude Code):**
+- `agent-setup/spec/engineering-standards.md`
 - `.claude/CLAUDE.md`
 - `AGENTS.md`
-- `.project/vision.md`
-- `.project/state.json`
-- `agent-setup/spec/engineering-standards.md`
 - `agent-setup/agents/<agent>/agent.md`
+
+**Semi-static — load next:**
 - `agent-setup/agents/<agent>/memory.md`
+
+**Dynamic — load last:**
+- `.project/state.json`
+
+**Lazy — load only when needed:**
+- `.project/vision.md`: load only if the agent's Inputs list it or the task explicitly requires vision context. Skip otherwise.
 
 ### 2. Validate
 Stop on failure if:

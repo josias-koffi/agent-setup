@@ -28,12 +28,20 @@ Use `run-workflow` when you want direct workflow orchestration without entering 
 ## Strict sequence
 
 ### 1. Load context
+
+Load in this order to maximise prompt-cache hits (stable content first, dynamic last).
+
+**Static — load first (cache candidates for Claude Code):**
+- `agent-setup/spec/engineering-standards.md`
 - `.claude/CLAUDE.md`
 - `AGENTS.md`
-- `.project/vision.md`
+
+**Dynamic — load next:**
 - `.project/state.json`
-- `agent-setup/spec/engineering-standards.md`
 - `.project/sprints/sprint-$ARGUMENTS[0].md`
+
+**Lazy — load only when needed:**
+- `.project/vision.md`: load only if the targeted task's acceptance criteria reference vision sections, or a stage agent (e.g. product-owner, analyst, designer) lists it in its Inputs. Skip otherwise.
 
 ### 2. Resolve execution scope
 - With only the sprint number, target every runnable task in the sprint.
@@ -68,7 +76,7 @@ For each targeted task:
   - load `agent-setup/agents/<stage-agent>/memory.md`
   - load all prior stage artifacts from `.project/workflows/<run-id>/`
   - execute the current stage with that agent persona
-  - write the declared output artifact (`<NN>-<agent-name>.md`)
+  - write the declared output artifact (`<NN>-<agent-name>.md`) — **max 400 words (~2 500 characters); summarise rather than quote if longer**
   - update `.project/state.json > last_workflow_stage`
   - append a dated entry to that agent's memory file
 - on blocking failure, stop immediately, record the failure in `final-summary.md`, and do not tick the sprint task

@@ -5,10 +5,14 @@
 Defines KPIs, runs data analysis, and produces user-research findings tied to the vision.
 
 ## Before any action (memory protocol)
-1. Read `.claude/CLAUDE.md`
-2. Read `agent-setup/agents/analyst/memory.md`
-3. Read `agent-setup/spec/engineering-standards.md`
-4. Read the active sprint file under `.project/sprints/`
+
+Load in this order (static → semi-static → dynamic) to maximise prompt-cache hits:
+
+1. Read `agent-setup/spec/engineering-standards.md` *(static)*
+2. Read `.claude/CLAUDE.md` *(static)*
+3. Read `agent-setup/agents/analyst/memory.md` *(semi-static)*
+4. Read the active sprint file under `.project/sprints/` *(dynamic)*
+5. Read `.project/vision.md` success-metrics section *(always required for this role)*
 
 ## Responsibilities
 - Define at least one measurable KPI for every epic in the backlog
@@ -43,6 +47,19 @@ Defines KPIs, runs data analysis, and produces user-research findings tied to th
 - Never ship an epic without at least one measurable KPI
 - Never cite data without a reproducible source in the spike file
 
+## Output format (workflow stage artifacts)
+Use this compact structure — omit empty sections:
+```
+### Verdict: [PASS|FAIL|BLOCKED]
+### Summary (≤ 100 words)
+<analysis result or KPI finding>
+### Findings
+- [BLOCKING] <issue>
+- [ADVISORY] <issue>
+### Next action
+<one sentence>
+```
+
 ## After every action (memory update)
 Append to `agent-setup/agents/analyst/memory.md`:
 ```
@@ -52,3 +69,4 @@ Append to `agent-setup/agents/analyst/memory.md`:
 - **Learned**: <insight>
 - **Open**: <unresolved questions>
 ```
+**Compaction rule**: if `memory.md` exceeds 20 entries, collapse all entries older than the last 10 into a single `## Compacted summary — <oldest-date> → <newest-collapsed-date>` block before appending the new entry.

@@ -5,10 +5,14 @@
 Implements sprint tasks end-to-end under the rules of `agent-setup/spec/engineering-standards.md`.
 
 ## Before any action (memory protocol)
-1. Read `.claude/CLAUDE.md`
-2. Read `agent-setup/agents/developer/memory.md`
-3. Read `agent-setup/spec/engineering-standards.md`
-4. Read the active sprint file under `.project/sprints/`
+
+Load in this order (static → semi-static → dynamic) to maximise prompt-cache hits:
+
+1. Read `agent-setup/spec/engineering-standards.md` *(static)*
+2. Read `.claude/CLAUDE.md` *(static)*
+3. Read `agent-setup/agents/developer/memory.md` *(semi-static)*
+4. Read the active sprint file under `.project/sprints/` *(dynamic)*
+5. Read `.project/vision.md` **only** if the task acceptance criteria reference vision sections *(lazy)*
 
 ## Responsibilities
 - Write code and tests for the assigned task (new-code coverage ≥ 90%)
@@ -52,6 +56,19 @@ Implements sprint tasks end-to-end under the rules of `agent-setup/spec/engineer
 - Never bypass `push-to-github` (no `--no-verify`, no `--force` to shared branches)
 - Never modify `.project/vision.md`
 
+## Output format (workflow stage artifacts)
+Use this compact structure — omit empty sections:
+```
+### Verdict: [PASS|FAIL|BLOCKED]
+### Summary (≤ 100 words)
+<what was done and result>
+### Findings
+- [BLOCKING] <issue>
+- [ADVISORY] <issue>
+### Next action
+<one sentence>
+```
+
 ## After every action (memory update)
 Append to `agent-setup/agents/developer/memory.md`:
 ```
@@ -61,3 +78,4 @@ Append to `agent-setup/agents/developer/memory.md`:
 - **Learned**: <insight>
 - **Open**: <unresolved questions>
 ```
+**Compaction rule**: if `memory.md` exceeds 20 entries, collapse all entries older than the last 10 into a single `## Compacted summary — <oldest-date> → <newest-collapsed-date>` block before appending the new entry.

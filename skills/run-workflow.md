@@ -77,6 +77,8 @@ Stage N
 
 Each agent must produce its output artifact before the next agent begins. Each agent reads all prior artifacts in full to maintain context continuity. The run-id used for the directory is `<chain-slug>-<YYYYMMDDHHMMSS>` where `<chain-slug>` is the full `agent1-agent2-agentN` string.
 
+**Artifact size cap**: every stage output file must not exceed 400 words (~2 500 characters). Summarise rather than quote when output would exceed this limit.
+
 ## Task resolution
 
 ### Sprint-backed task
@@ -105,13 +107,25 @@ If the workflow file is prose-only or missing any required stage field, stop and
 ## Strict sequence
 
 ### 1. Load shared context
+
+Load in this order to maximise prompt-cache hits (stable content first, dynamic last).
+
+**Static — load first (cache candidates for Claude Code):**
+- `agent-setup/spec/engineering-standards.md`
 - `.claude/CLAUDE.md`
 - `AGENTS.md`
-- `.project/vision.md`
-- `.project/state.json`
-- `agent-setup/spec/engineering-standards.md`
 - For pre-built workflows: `agent-setup/workflows/<workflow>.md`
-- For dynamic chains: each `agent-setup/agents/<segment>/agent.md` and `memory.md` loaded per stage
+
+**Semi-static — load next:**
+- Per-stage: `agent-setup/agents/<stage-agent>/agent.md`
+- Per-stage: `agent-setup/agents/<stage-agent>/memory.md`
+
+**Dynamic — load last:**
+- `.project/state.json`
+- `.project/sprints/sprint-NNN.md` (only when task is sprint-backed)
+
+**Lazy — load only when needed:**
+- `.project/vision.md`: load only if the task or any stage agent lists `vision.md` in its Inputs, or if acceptance-criteria validation requires it. Skip otherwise.
 
 ### 2. Create the workflow run directory
 Create `.project/workflows/<run-id>/`.

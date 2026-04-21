@@ -8,41 +8,32 @@
 #   bash bootstrap.sh --dry-run  # print what would be done, no writes
 #
 # After install, from ANY project directory:
-#   claude
-#   /init-project [optional: vision-file.md]
-#   /sprint 001 [task-id]
-#   /run-agent developer "Fix checkout race condition"
-#   /run-workflow analyze-design-dev-review US-001
-#   /upgrade-project
+#   claude / codex
+#   init-project [optional: vision-file.md]
+#   sprint 001 [task-id]
+#   run-agent developer "Fix checkout race condition"
+#   run-workflow analyze-design-dev-review US-001
+#   push-to-github
+#   create-pr
+#   upgrade-project
 #
-#   codex
-#   $init-project ./vision.md
-#   $sprint 001 [task-id]
-#   $run-agent developer Fix checkout race condition
-#   $run-workflow analyze-design-dev-review US-001
-#   $upgrade-project
+# What gets installed (same files to both ~/.claude and ~/.codex):
+#   skills/init-project/SKILL.md           — init-project skill
+#   skills/sprint/SKILL.md                 — sprint skill
+#   skills/run-agent/SKILL.md              — run-agent skill
+#   skills/run-workflow/SKILL.md           — run-workflow skill
+#   skills/upgrade-project/SKILL.md        — upgrade-project skill
+#   skills/push-to-github/SKILL.md         — agnostic push skill (project overrides this)
+#   skills/create-pr/SKILL.md              — create-pr skill
+#   skills/documentation-from-commits/SKILL.md
+#   agent-setup/VERSION                    — installed framework version
+#   agent-setup/bin/render-templates.sh    — shell interpolation engine
+#   agent-setup/templates/                 — every static template init-project copies
 #
-# What gets installed:
-#   ~/.claude/skills/init-project/SKILL.md    — Claude /init-project skill
-#   ~/.claude/skills/sprint/SKILL.md          — Claude /sprint skill
-#   ~/.claude/skills/run-agent/SKILL.md       — Claude /run-agent skill
-#   ~/.claude/skills/run-workflow/SKILL.md    — Claude /run-workflow skill
-#   ~/.claude/skills/upgrade-project/SKILL.md — Claude /upgrade-project skill
-#   ~/.codex/skills/init-project/SKILL.md     — Codex init-project skill
-#   ~/.codex/skills/sprint/SKILL.md           — Codex sprint skill
-#   ~/.codex/skills/run-agent/SKILL.md        — Codex run-agent skill
-#   ~/.codex/skills/run-workflow/SKILL.md     — Codex run-workflow skill
-#   ~/.codex/skills/upgrade-project/SKILL.md  — Codex upgrade-project skill
-#   ~/.claude/agent-setup/VERSION             — Claude-installed framework version
-#   ~/.codex/agent-setup/VERSION              — Codex-installed framework version
-#   ~/.claude/agent-setup/bin/
-#   ~/.codex/agent-setup/bin/
-#     render-templates.sh                     — shell interpolation engine
-#   ~/.claude/agent-setup/templates/          — every static template /init copies
-#   ~/.codex/agent-setup/templates/           — every static template Codex skills use
-#
-# `init-project` detects stack + context and calls render-templates.sh once to produce
-# all project files. Static boilerplate never enters the LLM context.
+# Project-level skill overrides:
+#   After running init-project in a project, stack-specific skills are installed to
+#   .claude/skills/ and .codex/skills/ within the project directory. These take
+#   precedence over the global agnostic skills above.
 #
 # Honours $CLAUDE_HOME and $CODEX_HOME for non-default locations.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -89,25 +80,21 @@ for required in \
     skills/run-agent.md \
     skills/run-workflow.md \
     skills/upgrade-project.md \
-    skills/init.codex.md \
-    skills/sprint.codex.md \
-    skills/run-agent.codex.md \
-    skills/run-workflow.codex.md \
-    skills/upgrade-project.codex.md; do
+    skills/push-to-github.md \
+    skills/create-pr.md \
+    skills/documentation-from-commits.md; do
     if [ ! -e "$SCRIPT_DIR/$required" ]; then
         echo "bootstrap: missing $SCRIPT_DIR/$required — repo looks incomplete" >&2
         exit 1
     fi
 done
 
+# Install all global skills from a single source file to both runtimes.
+# $1 = cli name (for display)
+# $2 = destination root (~/.claude or ~/.codex)
 install_target() {
     local cli_name="$1"
     local dest="$2"
-    local init_skill_src="$3"
-    local sprint_skill_src="$4"
-    local run_agent_skill_src="$5"
-    local run_workflow_skill_src="$6"
-    local upgrade_skill_src="$7"
     local installed_version=""
 
     if [ -f "$dest/agent-setup/VERSION" ]; then
@@ -131,7 +118,10 @@ install_target() {
         "$dest/skills/sprint" \
         "$dest/skills/run-agent" \
         "$dest/skills/run-workflow" \
-        "$dest/skills/upgrade-project"
+        "$dest/skills/upgrade-project" \
+        "$dest/skills/push-to-github" \
+        "$dest/skills/create-pr" \
+        "$dest/skills/documentation-from-commits"
 
     echo "Installing agent-setup $NEW_VERSION for $cli_name → $dest"
 
@@ -140,17 +130,18 @@ install_target() {
     run chmod +x "$dest/agent-setup/bin/render-templates.sh"
     run cp "$SCRIPT_DIR/VERSION" "$dest/agent-setup/VERSION"
 
-    run cp "$SCRIPT_DIR/$init_skill_src" "$dest/skills/init-project/SKILL.md"
-    run cp "$SCRIPT_DIR/$sprint_skill_src" "$dest/skills/sprint/SKILL.md"
-    run cp "$SCRIPT_DIR/$run_agent_skill_src" "$dest/skills/run-agent/SKILL.md"
-    run cp "$SCRIPT_DIR/$run_workflow_skill_src" "$dest/skills/run-workflow/SKILL.md"
-    run cp "$SCRIPT_DIR/$upgrade_skill_src" "$dest/skills/upgrade-project/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/init.md"                      "$dest/skills/init-project/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/sprint.md"                    "$dest/skills/sprint/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/run-agent.md"                 "$dest/skills/run-agent/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/run-workflow.md"              "$dest/skills/run-workflow/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/upgrade-project.md"           "$dest/skills/upgrade-project/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/push-to-github.md"            "$dest/skills/push-to-github/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/create-pr.md"                 "$dest/skills/create-pr/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/documentation-from-commits.md" "$dest/skills/documentation-from-commits/SKILL.md"
 }
 
-install_target "Claude" "$CLAUDE_DEST" \
-    "skills/init.md" "skills/sprint.md" "skills/run-agent.md" "skills/run-workflow.md" "skills/upgrade-project.md"
-install_target "Codex" "$CODEX_DEST" \
-    "skills/init.codex.md" "skills/sprint.codex.md" "skills/run-agent.codex.md" "skills/run-workflow.codex.md" "skills/upgrade-project.codex.md"
+install_target "Claude" "$CLAUDE_DEST"
+install_target "Codex"  "$CODEX_DEST"
 
 if [ "$DRY_RUN" = 1 ]; then
     echo
@@ -163,41 +154,36 @@ cat <<'BANNER'
 ─────────────────────────────────────────────────────────────
 ✅ agent-setup installed.
 
-Installed under:
-  CLAUDE_HOME/skills/init-project/SKILL.md    (Claude /init-project)
-  CLAUDE_HOME/skills/sprint/SKILL.md          (Claude /sprint)
-  CLAUDE_HOME/skills/run-agent/SKILL.md       (Claude /run-agent)
-  CLAUDE_HOME/skills/run-workflow/SKILL.md    (Claude /run-workflow)
-  CLAUDE_HOME/skills/upgrade-project/SKILL.md (Claude /upgrade-project)
-  CLAUDE_HOME/agent-setup/                    (Claude framework payload)
-  CODEX_HOME/skills/init-project/SKILL.md     (Codex $init-project)
-  CODEX_HOME/skills/sprint/SKILL.md           (Codex $sprint)
-  CODEX_HOME/skills/run-agent/SKILL.md        (Codex $run-agent)
-  CODEX_HOME/skills/run-workflow/SKILL.md     (Codex $run-workflow)
-  CODEX_HOME/skills/upgrade-project/SKILL.md  (Codex $upgrade-project)
-  CODEX_HOME/agent-setup/                     (Codex framework payload)
+Global skills (agnostic, same files for Claude Code and Codex CLI):
+  init-project, sprint, run-agent, run-workflow, upgrade-project
+  push-to-github, create-pr, documentation-from-commits
+
+Project-level overrides:
+  After running init-project, stack-specific skills are installed to
+  .claude/skills/ and .codex/skills/ inside the project — they take
+  precedence over the global agnostic skills above.
 
 USAGE
 ─────────────────────────────────────────────────────────────
 
   cd ~/your-project
-  claude
 
+  claude
   /init-project ./vision.md
   /sprint 001
-  /sprint 001 US-001
   /run-agent developer "Fix checkout race condition"
-  /run-agent qa-reviewer "Review recent checkout changes for regressions"
   /run-workflow analyze-design-dev-review US-001
+  /push-to-github
+  /create-pr
   /upgrade-project
 
   codex
   $init-project ./vision.md
   $sprint 001
-  $sprint 001 US-001
   $run-agent developer Fix checkout race condition
-  $run-agent qa-reviewer Review recent checkout changes for regressions
   $run-workflow analyze-design-dev-review US-001
+  $push-to-github
+  $create-pr
   $upgrade-project
 
 Reinstall later:

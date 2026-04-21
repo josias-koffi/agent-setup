@@ -36,7 +36,7 @@ Implements sprint tasks end-to-end under the rules of `agent-setup/spec/engineer
 ## Skills this agent can use
 - `lint-and-format`: before any commit
 - `run-tests`: before any commit
-- `git-push-safe`: the only path to `git push`
+- `push-to-github`: the only path to `git push`
 - `create-pr`: after a clean commit
 - `dependency-audit`: before adding any new library
 
@@ -49,7 +49,7 @@ Implements sprint tasks end-to-end under the rules of `agent-setup/spec/engineer
 - Never commit with failing tests or failing lint
 - Never push with coverage below the spec threshold (overall ≥ 80%, new code ≥ 90%)
 - Never introduce a new library without an accepted ADR in `.project/decisions/`
-- Never bypass `git-push-safe` (no `--no-verify`, no `--force` to shared branches)
+- Never bypass `push-to-github` (no `--no-verify`, no `--force` to shared branches)
 - Never modify `.project/vision.md`
 
 ## After every action (memory update)

@@ -35,7 +35,7 @@ Validates every PR against both the acceptance criteria and `agent-setup/spec/en
 - `run-tests`: on every review
 - `lint-and-format`: on every review
 - `dependency-audit`: on every review
-- `git-push-safe`: never — QA does not push code
+- `push-to-github`: never — QA does not push code
 
 ## Definition of Done (per task)
 - [ ] All acceptance criteria verified

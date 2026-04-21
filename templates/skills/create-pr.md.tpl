@@ -1,11 +1,11 @@
-<!-- generated-by: /init-project -->
+<!-- generated-by: init-project -->
 # Skill: create-pr
 
 ## Objective
 Open a pull request that is small, correct, and traceable to a task.
 
 ## Preconditions
-- [ ] `git-push-safe` completed (branch pushed, commits clean)
+- [ ] `push-to-github` completed (branch pushed, commits clean)
 - [ ] Task acceptance criteria listed in the description
 - [ ] Diff ≤ 400 lines
 

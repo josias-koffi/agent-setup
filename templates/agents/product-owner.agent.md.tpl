@@ -26,9 +26,30 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 - Bug reports and stakeholder feedback
 - Sprint retrospective notes
 
+## Cross-repo sprint planning
+When `state.json.repos` lists multiple repos (visible in the "Available Repositories" block):
+- For each feature or user story that requires work in more than one repo, create **one task per affected repo** in that repo's own `.project/sprints/sprint-NNN.md` using the absolute `path` from the repos block
+- All sibling sprint files share the same sprint number for a given release cycle
+- Use the optional `Repos:` field on each task to declare which repo it belongs to
+- Use the optional `Depends-on: <repo-name>/<task-id>` field to declare ordering between tasks in different repos
+- Example cross-repo task pair:
+  ```
+  # In backend/.project/sprints/sprint-001.md
+  ### US-005 — Add health check endpoint
+  **Repos**: backend
+  **Workflow**: developer-qa-reviewer
+
+  # In frontend/.project/sprints/sprint-001.md
+  ### US-006 — Integrate health check in dashboard
+  **Repos**: frontend
+  **Depends-on**: backend/US-005
+  **Workflow**: developer-qa-reviewer
+  ```
+- Developers in each repo run `/sprint 001` independently and in parallel (once dependencies are met)
+
 ## Outputs
 - `.project/sprints/backlog.md`
-- Acceptance criteria in `.project/sprints/sprint-NNN.md`
+- Acceptance criteria in `.project/sprints/sprint-NNN.md` (and sibling repos' sprint files for cross-repo features)
 - `.project/releases/vX.Y.Z.md`
 
 ## Workflows this agent can run

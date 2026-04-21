@@ -37,6 +37,19 @@ Load in this order to maximise prompt-cache hits (stable content first, dynamic 
 **Dynamic — load last:**
 - `.project/state.json`
 
+**Repo discovery (inline, after state.json load):**
+If `state.json.repos` contains any entry where `name`, `stack`, or `role` is `null`:
+1. For each such entry, read the manifest file at its `path` (priority: `package.json` → `Cargo.toml` → `go.mod` → `composer.json` → `pyproject.toml` → `requirements.txt`)
+2. Detect `name` (package name or dirname), `stack`, `description` (manifest description or first non-blank README line), `role` (infer from name/description: `frontend` | `backend` | `mobile` | `lib` | `infra`)
+3. Write detected fields back to that repo entry in `.project/state.json`
+4. Sync the updated `repos` array to every sibling repo that has a `.project/state.json` — replace only the `repos` field, leave all other fields untouched; skip silently if the sibling has no `.project/state.json`
+This is a one-time cost per repo. On subsequent runs all fields are populated and no probe occurs.
+If `state.json.repos` is non-empty after discovery, prepend a compact repos block to the task context before agent execution:
+```
+## Available Repositories (N)
+- <role> [<stack>] <name> at <path> — <description>
+```
+
 **Lazy — load only when needed:**
 - `.project/vision.md`: load only if the agent's Inputs list it or the task explicitly requires vision context. Skip otherwise.
 

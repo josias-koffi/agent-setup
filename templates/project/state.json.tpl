@@ -19,5 +19,6 @@
   "last_workflow_result": null,
   "active_workflow_run": null,
   "workflow_runs": [],
-  "last_task_completed": null
+  "last_task_completed": null,
+  "repos": []
 }

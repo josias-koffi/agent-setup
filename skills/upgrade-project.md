@@ -131,6 +131,7 @@ Create backups only for files that will actually be overwritten.
   - `last_workflow_result`
   - `active_workflow_run`
   - `workflow_runs`
+  - `repos` (add as `[]` if missing — never overwrite an existing non-empty array)
 - do not reset unrelated state fields such as sprint counters or existing clarifications
 
 ### 5.4 Project skill overrides

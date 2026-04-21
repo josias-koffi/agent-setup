@@ -26,6 +26,14 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 - Design mockups in `.project/designs/` (when present)
 - `agent-setup/spec/engineering-standards.md`
 
+## Multi-repo navigation
+When `task.md` contains an "Available Repositories" block:
+- Use the absolute `path` listed for each repo to navigate and read/write files in that repo
+- Never assume relative paths when working across repos — always use absolute paths
+- If the task has a `Repos:` field, scope your work to those repos only
+- Declare in your output artifact which repos were modified and what changed in each
+- If a cross-repo change is blocked (missing dependency, type mismatch, circular dep), report as [BLOCKING] in Findings
+
 ## Outputs
 - Source code + tests
 - Commits + PRs
@@ -55,6 +63,7 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 - Never introduce a new library without an accepted ADR in `.project/decisions/`
 - Never bypass `push-to-github` (no `--no-verify`, no `--force` to shared branches)
 - Never modify `.project/vision.md`
+- Never assume single-repo scope when "Available Repositories" lists multiple repos for the task
 
 ## Output format (workflow stage artifacts)
 Use this compact structure — omit empty sections:

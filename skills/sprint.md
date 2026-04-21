@@ -40,15 +40,24 @@ Load in this order to maximise prompt-cache hits (stable content first, dynamic 
 - `.project/state.json`
 - `.project/sprints/sprint-$ARGUMENTS[0].md`
 
+**Repo discovery (inline, after state.json load):**
+If `state.json.repos` contains any entry where `name`, `stack`, or `role` is `null`:
+1. For each such entry, read the manifest file at its `path` (priority: `package.json` → `Cargo.toml` → `go.mod` → `composer.json` → `pyproject.toml` → `requirements.txt`)
+2. Detect `name` (package name or dirname), `stack`, `description` (manifest description or first non-blank README line), `role` (infer from name/description: `frontend` | `backend` | `mobile` | `lib` | `infra`)
+3. Write detected fields back to that repo entry in `.project/state.json`
+4. Sync the updated `repos` array to every sibling repo that has a `.project/state.json` — replace only the `repos` field, leave all other fields untouched; skip silently if the sibling has no `.project/state.json`
+This is a one-time cost per repo. On subsequent runs all fields are populated and no probe occurs.
+
 **Lazy — load only when needed:**
 - `.project/vision.md`: load only if the targeted task's acceptance criteria reference vision sections, or a stage agent (e.g. product-owner, analyst, designer) lists it in its Inputs. Skip otherwise.
 
 ### 2. Resolve execution scope
 - With only the sprint number, target every runnable task in the sprint.
 - With a task ID, target only that task.
-- For each targeted task, parse its title, acceptance criteria, and `Workflow:` line.
+- For each targeted task, parse its title, acceptance criteria, `Workflow:` line, optional `Repos:` line, and optional `Depends-on:` line.
 - If `$ARGUMENTS[2]` is present, use it as the workflow override.
 - If a targeted task has no workflow and no override was provided, stop and report the missing metadata.
+- If the task has a `Depends-on: <repo>/<task-id>` field, check whether that task is marked complete in the sibling repo's sprint file. If not, emit an advisory warning (do not block).
 
 ### 3. Resolve workflow mode
 For each resolved workflow spec (from the task `Workflow:` field or the override), apply this priority:
@@ -70,7 +79,12 @@ For each targeted task:
 - create `.project/workflows/<run-id>/`
   - for pre-built workflows: run-id is `<workflow-name>-<YYYYMMDDHHMMSS>`
   - for dynamic chains: run-id is `<agent1-agent2-agentN>-<YYYYMMDDHHMMSS>`
-- write the task context to `.project/workflows/<run-id>/task.md`
+- write the task context to `.project/workflows/<run-id>/task.md`; if `state.json.repos` is non-empty, append a compact repos block:
+  ```
+  ## Available Repositories (N)
+  - <role> [<stack>] <name> at <path> — <description>
+  ```
+  If the task has a `Repos:` field, include only the listed repos in this block; otherwise include all.
 - for each stage (declared or dynamically constructed):
   - load `agent-setup/agents/<stage-agent>/agent.md`
   - load `agent-setup/agents/<stage-agent>/memory.md`

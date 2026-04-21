@@ -8,6 +8,7 @@ A two-layer system with dual CLI support:
 - `run-agent` runs an ad hoc task as a single-agent execution.
 - `run-workflow` orchestrates a staged multi-agent workflow directly, outside the sprint entrypoint. Accepts a pre-built workflow name or a dynamic agent chain.
 - `upgrade-project` safely migrates previously initialized projects to the latest generated format.
+- `reload-projects` probes repos registered in `state.json.repos`, auto-fills missing metadata, and syncs the repos list to every sibling project.
 
 ## Install Once
 
@@ -21,11 +22,11 @@ Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if s
 
 ```text
 ~/.claude/
-├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 
 ~/.codex/
-├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 ```
 
@@ -49,12 +50,109 @@ $init-project ./vision.md
 
 Important:
 
-- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`, `/upgrade-project`
-- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`, `$upgrade-project`
+- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`, `/upgrade-project`, `/reload-projects`
+- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`, `$upgrade-project`, `$reload-projects`
 
 If you do not pass a vision file, `init-project` auto-generates `.project/vision.md` from detected context.
 
 Important: `init-project` does not overwrite existing generated files. Use `upgrade-project` to migrate older initialized projects.
+
+## Multi-Repo Projects
+
+A product often spans multiple repositories — a backend API, a frontend app, a mobile app, shared libraries. The framework supports this through a `repos` registry in `.project/state.json`.
+
+### Register repos
+
+After running `init-project`, open `.project/state.json` and add an entry for each sibling repo. Only `path` is required:
+
+```json
+"repos": [
+  { "path": "/absolute/path/to/backend" },
+  { "path": "/absolute/path/to/frontend" },
+  { "path": "/absolute/path/to/mobile" }
+]
+```
+
+Then run `/reload-projects` to auto-detect and fill the remaining fields:
+
+```bash
+/reload-projects
+```
+
+Claude reads each repo's manifest (`package.json`, `Cargo.toml`, `go.mod`, etc.) and writes back:
+
+```json
+"repos": [
+  {
+    "path": "/absolute/path/to/backend",
+    "name": "my-api",
+    "stack": "go",
+    "description": "REST API and auth service",
+    "role": "backend"
+  },
+  {
+    "path": "/absolute/path/to/frontend",
+    "name": "my-dashboard",
+    "stack": "node",
+    "description": "React dashboard",
+    "role": "frontend"
+  }
+]
+```
+
+The updated `repos` array is automatically synced to every sibling repo's `.project/state.json`, so all projects always carry the full picture.
+
+### How agents use repos
+
+Every `sprint`, `run-workflow`, and `run-agent` call automatically injects a compact repos block into the task context:
+
+```
+## Available Repositories (2)
+- backend [go] my-api at /path/to/backend — REST API and auth service
+- frontend [node] my-dashboard at /path/to/frontend — React dashboard
+```
+
+The **developer agent** uses the absolute paths to navigate and modify files across repos. It declares which repos it changed in its output artifact.
+
+### Cross-repo sprint tasks
+
+When a feature requires work in multiple repos, the **product owner** creates one task per affected repo, each in that repo's own sprint file. Use the optional `Repos:` and `Depends-on:` fields:
+
+```markdown
+# backend/.project/sprints/sprint-001.md
+### US-005 — Add health check endpoint
+**Priority**: High
+**Workflow**: developer-qa-reviewer
+**Repos**: backend
+**Acceptance Criteria**:
+- [ ] GET /health returns 200 with status payload
+```
+
+```markdown
+# frontend/.project/sprints/sprint-001.md
+### US-006 — Integrate health check in dashboard
+**Priority**: High
+**Workflow**: developer-qa-reviewer
+**Repos**: frontend
+**Depends-on**: backend/US-005
+**Acceptance Criteria**:
+- [ ] Dashboard polls /health and displays status
+```
+
+Developers in each repo run `/sprint 001` independently and in parallel. When `Depends-on:` is set, the sprint runner warns (but does not block) if the referenced task is not yet complete.
+
+### `reload-projects`
+
+Use `reload-projects` any time you add a new repo path or want to force a re-sync:
+
+```bash
+/reload-projects      # Claude
+$reload-projects      # Codex
+```
+
+It skips repos that already have all fields populated (idempotent) and reports a sync table showing which sibling projects were updated.
+
+> **Tip**: `reload-projects` is also triggered automatically inside `sprint`, `run-workflow`, and `run-agent` whenever it finds a repo entry with missing fields — so you never have to run it manually if you forget.
 
 ## Project Layout
 
@@ -299,6 +397,6 @@ $upgrade-project
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent ~/.claude/skills/run-workflow ~/.claude/skills/upgrade-project
-rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent ~/.codex/skills/run-workflow ~/.codex/skills/upgrade-project
+rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent ~/.claude/skills/run-workflow ~/.claude/skills/upgrade-project ~/.claude/skills/reload-projects
+rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent ~/.codex/skills/run-workflow ~/.codex/skills/upgrade-project ~/.codex/skills/reload-projects
 ```

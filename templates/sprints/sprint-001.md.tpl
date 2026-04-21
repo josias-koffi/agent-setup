@@ -13,6 +13,7 @@ Clarify vision and engineering baseline.
 - [ ] **[US-001]** Resolve clarifications in `.project/state.json > clarifications_pending`
   - Agent: `product-owner`
   - Workflow: `spike-research`
+  <!-- Workflow can also be a dynamic agent chain, e.g. `analyst-product-owner` -->
   - Acceptance criteria:
     - [ ] Every `⚠️ TO CLARIFY` has a written answer or a concrete follow-up in the backlog
     - [ ] `.project/vision.md` reviewed and updated where needed

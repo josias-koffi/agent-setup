@@ -6,7 +6,7 @@ A two-layer system with dual CLI support:
 - `init-project` initializes one specific repository by generating a local project workspace around your vision file.
 - `sprint` is the sprint-scoped entrypoint and follows the workflow declared by each sprint task.
 - `run-agent` runs an ad hoc task as a single-agent execution.
-- `run-workflow` orchestrates a staged multi-agent workflow directly, outside the sprint entrypoint.
+- `run-workflow` orchestrates a staged multi-agent workflow directly, outside the sprint entrypoint. Accepts a pre-built workflow name or a dynamic agent chain.
 - `upgrade-project` safely migrates previously initialized projects to the latest generated format.
 
 ## Install Once
@@ -117,7 +117,7 @@ Use `sprint` when the task exists in `.project/sprints/sprint-NNN.md`.
 ```text
 sprint <sprint-number>
 sprint <sprint-number> <task-id>
-sprint <sprint-number> <task-id> <workflow>
+sprint <sprint-number> <task-id> <workflow-or-chain>
 ```
 
 Examples in Claude:
@@ -126,6 +126,7 @@ Examples in Claude:
 /sprint 001
 /sprint 001 US-001
 /sprint 001 US-001 analyze-design-dev-review
+/sprint 001 US-001 developer-qa-reviewer-tech-lead
 ```
 
 Examples in Codex:
@@ -133,13 +134,14 @@ Examples in Codex:
 ```text
 $sprint 001
 $sprint 001 US-001
+$sprint 001 US-001 developer-qa-reviewer
 ```
 
 Behavior:
 - sprint-scoped
-- workflow inferred from the sprint task, with optional explicit workflow override
-- multi-agent orchestration when the workflow contains multiple agent stages
-- handoff artifacts persisted under `.project/workflows/<run-id>/`
+- workflow inferred from the sprint task `Workflow:` field, with optional explicit override
+- `Workflow:` can be a pre-built file name or a dynamic agent chain (e.g. `analyst-tech-lead`)
+- multi-agent orchestration with handoff artifacts persisted under `.project/workflows/<run-id>/`
 - sprint task checkboxes updated only after explicit acceptance verification
 
 ### `run-agent`
@@ -202,7 +204,7 @@ Behavior:
 Use `run-workflow` for direct multi-agent orchestration outside the sprint entrypoint.
 
 ```text
-run-workflow <workflow> <task-id|task-text>
+run-workflow <workflow-or-chain> <task-id|task-text>
 ```
 
 Examples in Claude:
@@ -211,27 +213,31 @@ Examples in Claude:
 /run-workflow analyze-design-dev-review US-005
 /run-workflow analyze-design-dev-review "fix auth error when using social auth"
 /run-workflow spike-research "Compare hosting options for the API"
+/run-workflow developer-qa-reviewer US-012
+/run-workflow analyst-tech-lead-developer "spike on caching strategy"
 ```
 
 Examples in Codex:
 
 ```text
 $run-workflow analyze-design-dev-review US-005
-$run-workflow analyze-design-dev-review fix auth error when using social auth
-$run-workflow spike-research Compare hosting options for the API
+$run-workflow developer-qa-reviewer fix checkout race condition
+$run-workflow analyst-tech-lead spike on caching strategy
 ```
 
 Behavior:
 - staged multi-agent execution
 - accepts either a sprint task ID or a free-form task text
-- reads explicit workflow stages from `agent-setup/workflows/*.md`
+- first argument is resolved as a **pre-built workflow file** or a **dynamic agent chain** (see Workflow Format)
 - persists handoff artifacts under `.project/workflows/<run-id>/`
 - updates workflow run state in `.project/state.json`
 - stops on blocking stage failures
 
 ## Workflow Format
 
-Workflow definitions are project-level files under `agent-setup/workflows/`.
+### Pre-built workflows
+
+Static workflow definitions live at `agent-setup/workflows/<name>.md`.
 Each stage must declare these fields explicitly:
 
 - `Agent:`
@@ -241,6 +247,24 @@ Each stage must declare these fields explicitly:
 - `OnFailure:`
 
 This explicit format is required for both `sprint` and `run-workflow`. Prose-only workflow files are not orchestration-safe.
+
+### Dynamic agent chains
+
+Instead of a pre-built workflow file, pass a hyphen-separated list of agent names:
+
+```text
+agent1-agent2-agentN
+```
+
+The orchestrator resolves each segment to `agent-setup/agents/<segment>/agent.md` and constructs stages at runtime. Each stage writes `NN-<agentname>.md` and the next agent reads all prior artifacts before acting.
+
+```text
+developer-qa-reviewer             → 2-stage chain
+analyst-tech-lead-developer       → 3-stage chain
+product-owner-designer-developer-qa-reviewer  → 4-stage chain
+```
+
+The run directory is named `<chain>-<timestamp>` for traceability. There is no limit on chain length. Any combination of the built-in agents (`product-owner`, `developer`, `designer`, `analyst`, `qa-reviewer`, `tech-lead`) and any specialized agents added under `agent-setup/agents/specialized/` can be used.
 
 ## Memory Protocol
 

@@ -23,6 +23,7 @@ Use `/run-workflow` when you want direct workflow orchestration without entering
 - `/sprint 001`
 - `/sprint 001 US-001`
 - `/sprint 001 US-001 analyze-design-dev-review`
+- `/sprint 001 US-001 developer-qa-reviewer-tech-lead`
 
 ## Strict sequence
 
@@ -41,33 +42,41 @@ Use `/run-workflow` when you want direct workflow orchestration without entering
 - If `$ARGUMENTS[2]` is present, use it as the workflow override.
 - If a targeted task has no workflow and no override was provided, stop and report the missing metadata.
 
-### 3. Validate
+### 3. Resolve workflow mode
+For each resolved workflow spec (from the task `Workflow:` field or the override), apply this priority:
+
+**Pre-built workflow**: if `agent-setup/workflows/<spec>.md` exists, load it and use its declared stages.
+
+**Dynamic agent chain**: if no workflow file is found, split the spec on `-` into agent segments. Verify each segment has a matching `agent-setup/agents/<segment>/agent.md`. If all segments are valid agents, construct dynamic stages (see `/run-workflow` for the dynamic stage list construction rules). If any segment is unknown, stop and report.
+
+### 4. Validate
 Stop on failure if:
 - required project files are missing
 - the requested sprint file or task does not exist
-- the resolved workflow is missing
-- the workflow file is not in explicit stage format with `Agent:`, `Inputs:`, `Outputs:`, `Pass:`, and `OnFailure:` per stage
+- the resolved workflow spec cannot be resolved (neither a pre-built file nor a valid agent chain)
+- a pre-built workflow file is not in explicit stage format with `Agent:`, `Inputs:`, `Outputs:`, `Pass:`, and `OnFailure:` per stage
 - a targeted task is already fully checked
 
-### 4. Orchestrate the workflow
+### 5. Orchestrate the workflow
 For each targeted task:
 - create `.project/workflows/<run-id>/`
+  - for pre-built workflows: run-id is `<workflow-name>-<YYYYMMDDHHMMSS>`
+  - for dynamic chains: run-id is `<agent1-agent2-agentN>-<YYYYMMDDHHMMSS>`
 - write the task context to `.project/workflows/<run-id>/task.md`
-- load the resolved workflow stages from `agent-setup/workflows/<workflow>.md`
-- for each stage:
+- for each stage (declared or dynamically constructed):
   - load `agent-setup/agents/<stage-agent>/agent.md`
   - load `agent-setup/agents/<stage-agent>/memory.md`
   - load all prior stage artifacts from `.project/workflows/<run-id>/`
   - execute the current stage with that agent persona
-  - write the declared output artifact
+  - write the declared output artifact (`<NN>-<agent-name>.md`)
   - update `.project/state.json > last_workflow_stage`
   - append a dated entry to that agent's memory file
 - on blocking failure, stop immediately, record the failure in `final-summary.md`, and do not tick the sprint task
 
-### 5. Update sprint file
+### 6. Update sprint file
 Tick checkboxes only when every acceptance criterion is explicitly verified by the orchestrated workflow output.
 
-### 6. Update `.project/state.json`
+### 7. Update `.project/state.json`
 - `last_updated` = ISO now
 - `last_workflow_run` = resolved workflow for the last completed task
 - `last_task_completed` = last completed task ID, or `all`
@@ -75,7 +84,7 @@ Tick checkboxes only when every acceptance criterion is explicitly verified by t
 - clear `active_workflow_run` at the end of each task run
 - add the sprint number to `completed_sprints` only if sprint DoD is fully met
 
-### 7. Report
+### 8. Report
 Include:
 - sprint number
 - targeted tasks

@@ -5,25 +5,25 @@ description: >
 allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest:*), Bash(go:*)
 ---
 
-# /run-workflow orchestrator
+# run-workflow orchestrator
 
 ## Purpose
 
 `run-workflow` is the dedicated multi-agent orchestrator. It executes one workflow stage at a time, with the agent assigned to that stage, and persists handoff artifacts so the next agent reads concrete prior output.
 
-Use `/run-workflow` for true agent chaining.
-Use `/sprint` for sprint-scoped workflow execution.
-Use `/run-agent` for single-agent execution.
+Use `run-workflow` for true agent chaining.
+Use `sprint` for sprint-scoped workflow execution.
+Use `run-agent` for single-agent execution.
 
 ## Arguments
 - `$ARGUMENTS[0]` = workflow spec — either a pre-built workflow name or a dynamic agent chain
 - `$ARGUMENTS[1...]` = task reference or free-form task text
 
 Examples:
-- `/run-workflow analyze-design-dev-review US-005`
-- `/run-workflow analyze-design-dev-review fix auth error when using social auth`
-- `/run-workflow developer-qa-reviewer US-012`
-- `/run-workflow analyst-tech-lead-developer spike on caching strategy`
+- `run-workflow analyze-design-dev-review US-005`
+- `run-workflow analyze-design-dev-review fix auth error when using social auth`
+- `run-workflow developer-qa-reviewer US-012`
+- `run-workflow analyst-tech-lead-developer spike on caching strategy`
 
 ## Workflow resolution
 

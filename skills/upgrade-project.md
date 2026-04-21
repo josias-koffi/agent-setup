@@ -5,7 +5,7 @@ description: >
 allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(diff:*), Bash(cmp:*), Bash(date:*), Bash(env:*), Bash($HOME/.claude/agent-setup/bin/render-templates.sh:*)
 ---
 
-# /upgrade-project — Safe Project Migration
+# upgrade-project — Safe Project Migration
 
 ## Purpose
 
@@ -16,7 +16,7 @@ Use it when:
 - `init-project` would skip existing generated files you now need to refresh
 - workflows must move from the old prose format to the new explicit orchestration format
 
-Do not use `upgrade-project` for greenfield setup. Use `/init-project` for that.
+Do not use `upgrade-project` for greenfield setup. Use `init-project` for that.
 
 ## Default mode
 
@@ -36,7 +36,7 @@ Migrate core files only:
 - the generated README block if it exists and is outdated
 
 Do not rewrite user source code or arbitrary project files.
-Do not migrate project-local `agent-setup/skills/*.md` in v1.
+Sync project-local `agent-setup/skills/*.md` to `.claude/skills/` and `.codex/skills/` as part of migration (see Phase 5.4).
 
 ## Phase 0 — Preflight
 
@@ -133,6 +133,19 @@ Create backups only for files that will actually be overwritten.
   - `workflow_runs`
 - do not reset unrelated state fields such as sprint counters or existing clarifications
 
+### 5.4 Project skill overrides
+Sync every `agent-setup/skills/*.md` to both runtime directories so project-level overrides stay current:
+
+```bash
+for skill_file in agent-setup/skills/*.md; do
+  skill_name="$(basename "$skill_file" .md)"
+  mkdir -p ".claude/skills/$skill_name"
+  cp "$skill_file" ".claude/skills/$skill_name/SKILL.md"
+  mkdir -p ".codex/skills/$skill_name"
+  cp "$skill_file" ".codex/skills/$skill_name/SKILL.md"
+done
+```
+
 ## Phase 6 — Final report
 
 Report:
@@ -147,7 +160,7 @@ Recommended next actions:
 1. Review migrated workflows under `agent-setup/workflows/`
 2. Review `.claude/CLAUDE.md` and `AGENTS.md`
 3. Inspect `.project/state.json` orchestration fields
-4. Run `/run-workflow <workflow> <task-id|task-text>` or `/sprint 001` to validate the upgraded project
+4. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
 
 ## Hard rules
 - Never touch files outside the managed core paths listed above

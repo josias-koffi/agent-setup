@@ -5,19 +5,19 @@ description: >
 allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest:*), Bash(go:*)
 ---
 
-# /run-agent runner
+# run-agent runner
 
 ## Purpose
 
-`run-agent` is a single-agent executor. It does not orchestrate handoffs between multiple agents. If the user wants stage-by-stage multi-agent execution with persisted outputs between agents, use `/run-workflow` instead.
+`run-agent` is a single-agent executor. It does not orchestrate handoffs between multiple agents. If the user wants stage-by-stage multi-agent execution with persisted outputs between agents, use `run-workflow` instead.
 
 ## Arguments
 - `$ARGUMENTS[0]` = agent name
 - `$ARGUMENTS[1...]` = task text
 
 Example:
-- `/run-agent developer Fix checkout race condition`
-- `/run-agent qa-reviewer Review recent checkout changes for regressions`
+- `run-agent developer Fix checkout race condition`
+- `run-agent qa-reviewer Review recent checkout changes for regressions`
 
 ## Strict sequence
 
@@ -46,7 +46,7 @@ Stop on failure if:
 ### 4. Update project state
 - Do not touch sprint files.
 - Update `.project/state.json > last_updated`.
-- Do not create `.project/workflows/<run-id>/` artifacts unless the user explicitly asked for `/run-workflow`.
+- Do not create `.project/workflows/<run-id>/` artifacts unless the user explicitly asked for `run-workflow`.
 
 ### 5. Update agent memory
 Append a dated entry to `agent-setup/agents/<agent>/memory.md`:

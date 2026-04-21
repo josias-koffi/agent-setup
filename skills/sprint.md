@@ -5,14 +5,14 @@ description: >
 allowed-tools: Read, Write, Bash(git:*), Bash(npm:*), Bash(cargo:*), Bash(pytest:*), Bash(go:*)
 ---
 
-# /sprint runner
+# sprint runner
 
 ## Purpose
 
 `sprint` is the sprint-scoped orchestrator. It resolves the target task or tasks from the sprint file, reads the workflow declared by each task, and executes that workflow stage by stage. When the workflow contains multiple agents, `sprint` must orchestrate the handoff between them through `.project/workflows/<run-id>/` artifacts.
 
-Use `/run-agent` only for ad hoc mono-agent work outside sprint files.
-Use `/run-workflow` when you want direct workflow orchestration without entering through a sprint.
+Use `run-agent` only for ad hoc mono-agent work outside sprint files.
+Use `run-workflow` when you want direct workflow orchestration without entering through a sprint.
 
 ## Arguments
 - `$ARGUMENTS[0]` = sprint number, zero-padded (for example `001`)
@@ -20,10 +20,10 @@ Use `/run-workflow` when you want direct workflow orchestration without entering
 - `$ARGUMENTS[2]` = optional workflow override
 
 ## Supported invocation forms
-- `/sprint 001`
-- `/sprint 001 US-001`
-- `/sprint 001 US-001 analyze-design-dev-review`
-- `/sprint 001 US-001 developer-qa-reviewer-tech-lead`
+- `sprint 001`
+- `sprint 001 US-001`
+- `sprint 001 US-001 analyze-design-dev-review`
+- `sprint 001 US-001 developer-qa-reviewer-tech-lead`
 
 ## Strict sequence
 
@@ -47,7 +47,7 @@ For each resolved workflow spec (from the task `Workflow:` field or the override
 
 **Pre-built workflow**: if `agent-setup/workflows/<spec>.md` exists, load it and use its declared stages.
 
-**Dynamic agent chain**: if no workflow file is found, split the spec on `-` into agent segments. Verify each segment has a matching `agent-setup/agents/<segment>/agent.md`. If all segments are valid agents, construct dynamic stages (see `/run-workflow` for the dynamic stage list construction rules). If any segment is unknown, stop and report.
+**Dynamic agent chain**: if no workflow file is found, split the spec on `-` into agent segments. Verify each segment has a matching `agent-setup/agents/<segment>/agent.md`. If all segments are valid agents, construct dynamic stages (see `run-workflow` for the dynamic stage list construction rules). If any segment is unknown, stop and report.
 
 ### 4. Validate
 Stop on failure if:

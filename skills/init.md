@@ -5,7 +5,7 @@ description: >
 allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(git:*), Bash(date:*), Bash(env:*), Bash($HOME/.claude/agent-setup/bin/render-templates.sh:*)
 ---
 
-# /init-project — Multi-Agent Project Initialiser
+# init-project — Multi-Agent Project Initialiser
 
 You are setting up a project with a reusable multi-agent structure. Almost all file generation is done by a shell renderer shipped with the framework. Your job is to detect context, invoke the renderer with the right env vars, and handle the small LLM-judgment pieces: vision stub, README append, and final report.
 
@@ -17,7 +17,7 @@ You are setting up a project with a reusable multi-agent structure. Almost all f
 1. Every task, epic, user story, specialised agent, or specific workflow must cite `.project/vision.md` with `(source: vision section)`.
 2. Unknown information becomes `TO CLARIFY`. Never invent.
 3. Only add files under `.claude/`, `.project/`, `AGENTS.md`, or `agent-setup/`.
-4. Be idempotent. Never overwrite existing generated files unless the user explicitly asks. Existing projects that need generated-file migration must use `upgrade-project`.
+4. Be idempotent. Never overwrite existing generated files unless the user explicitly asks. Existing projects that need generated-file migration must use the `upgrade-project` skill.
 5. Match the language of the vision file or README.
 6. Use only technologies detected in the codebase or explicitly stated in the vision.
 
@@ -87,6 +87,22 @@ Rules:
 - `CLARIFICATIONS_JSON_ARRAY` must be valid JSON.
 - Surface renderer stderr verbatim on any non-zero exit and stop.
 
+## Phase 4b — Install project skill overrides
+
+After the renderer exits 0, install each generated project skill so it takes precedence over the global agnostic version in both runtimes:
+
+```bash
+for skill_file in agent-setup/skills/*.md; do
+  skill_name="$(basename "$skill_file" .md)"
+  mkdir -p ".claude/skills/$skill_name"
+  cp "$skill_file" ".claude/skills/$skill_name/SKILL.md"
+  mkdir -p ".codex/skills/$skill_name"
+  cp "$skill_file" ".codex/skills/$skill_name/SKILL.md"
+done
+```
+
+This gives each project a stack-specific override that both Claude Code and Codex CLI will prefer over `~/.claude/skills/` and `~/.codex/skills/`.
+
 ## Phase 5 — README append
 
 Append the generated snippet only once, using the existing generated marker.
@@ -116,8 +132,8 @@ Recommend next actions in this order:
 2. Fill any `TO CLARIFY` commands in `.claude/CLAUDE.md`
 3. Review `agent-setup/spec/engineering-standards.md`
 4. Review `.project/sprints/sprint-001.md`
-5. Run `/upgrade-project` first if this repository was initialized by an older framework version
-6. Run `/sprint 001` for sprint-scoped orchestration or `/run-workflow <workflow> <task-id|task-text>` for direct staged orchestration
+5. Run `upgrade-project` first if this repository was initialized by an older framework version
+6. Run `sprint 001` for sprint-scoped orchestration or `run-workflow <workflow> <task-id|task-text>` for direct staged orchestration
 
 ## Final self-check
 

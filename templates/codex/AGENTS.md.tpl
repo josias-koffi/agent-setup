@@ -44,6 +44,7 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 - Never check a sprint task box unless every acceptance criterion is verified
 - Never add features absent from `.project/vision.md` without explicit user approval
 - Never introduce a new framework without an ADR in `.project/decisions/`
+- After every `$sprint`, `$run-agent`, or `$run-workflow` call: tick verified sprint checkboxes, update `.project/state.json` (last_updated, last_workflow_run, last_task_completed, last_workflow_result; add to completed_sprints only if DoD is met), append a dated entry to relevant agent memory files, and update the backlog with any newly discovered items — no exceptions
 
 ## Memory protocol
 After completing a task or workflow stage, append a dated entry to `agent-setup/agents/<own-role>/memory.md`.

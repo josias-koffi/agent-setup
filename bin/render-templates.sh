@@ -102,6 +102,7 @@ render_one() {
 }
 
 render_one "$TPL_ROOT/claude/CLAUDE.md.tpl"              ".claude/CLAUDE.md"
+render_one "$TPL_ROOT/claude/settings.json.tpl"         ".claude/settings.json"
 render_one "$TPL_ROOT/codex/AGENTS.md.tpl"               "AGENTS.md"
 render_one "$TPL_ROOT/project/state.json.tpl"            ".project/state.json"
 render_one "$TPL_ROOT/spec/engineering-standards.md.tpl" "agent-setup/spec/engineering-standards.md"

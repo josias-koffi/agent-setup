@@ -118,6 +118,7 @@ Report:
 The created structure must include:
 - `AGENTS.md`
 - `.claude/CLAUDE.md`
+- `.claude/settings.json`
 - `.project/vision.md`
 - `.project/state.json`
 - `.project/workflows/`

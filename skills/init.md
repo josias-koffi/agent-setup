@@ -133,7 +133,7 @@ Recommend next actions in this order:
 2. Fill any `TO CLARIFY` commands in `.claude/CLAUDE.md`
 3. Review `agent-setup/spec/engineering-standards.md`
 4. Review `.project/sprints/sprint-001.md`
-5. Run `upgrade-project` first if this repository was initialized by an older framework version
+5. If this repository was already initialized and now needs framework-managed file updates, use `upgrade-project` instead of rerunning `init-project`
 6. Run `sprint 001` for sprint-scoped orchestration or `run-workflow <workflow> <task-id|task-text>` for direct staged orchestration
 
 ## Final self-check

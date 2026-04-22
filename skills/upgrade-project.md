@@ -1,7 +1,7 @@
 ---
 name: upgrade-project
 description: >
-  Safely migrates an existing agent-setup project to the latest generated format. Use when a repository was initialized by an older version and needs updated workflows, session entry docs, or state fields without blindly overwriting user edits.
+  Safely migrates an existing agent-setup project to the latest generated format. Use when a repository was initialized by an older version and needs updated workflows, session entry docs, project skill overrides, or state fields without blindly overwriting user edits.
 allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(find:*), Bash(cat:*), Bash(test:*), Bash(diff:*), Bash(cmp:*), Bash(date:*), Bash(env:*), Bash($HOME/.claude/agent-setup/bin/render-templates.sh:*)
 ---
 
@@ -14,6 +14,7 @@ allowed-tools: Read, Write, Edit, Bash(mkdir:*), Bash(cp:*), Bash(ls:*), Bash(fi
 Use it when:
 - the project already contains `.claude/`, `.project/`, `AGENTS.md`, or `agent-setup/`
 - `init-project` would skip existing generated files you now need to refresh
+- generated project skills under `agent-setup/skills/` must be refreshed from the latest framework templates
 - workflows must move from the old prose format to the new explicit orchestration format
 
 Do not use `upgrade-project` for greenfield setup. Use `init-project` for that.
@@ -30,13 +31,14 @@ It must not overwrite existing core generated files until it has:
 
 Migrate core files only:
 - `agent-setup/workflows/*.md`
+- `agent-setup/skills/*.md`
 - `AGENTS.md`
 - `.claude/CLAUDE.md`
 - `.project/state.json`
 - the generated README block if it exists and is outdated
 
 Do not rewrite user source code or arbitrary project files.
-Sync project-local `agent-setup/skills/*.md` to `.claude/skills/` and `.codex/skills/` as part of migration (see Phase 5.4).
+After refreshing project-local `agent-setup/skills/*.md`, sync them to `.claude/skills/` and `.codex/skills/` as part of migration (see Phase 5.5).
 
 ## Phase 0 — Preflight
 
@@ -75,11 +77,13 @@ Managed paths:
 - `.claude/CLAUDE.md`
 - `.project/state.json`
 - every file under `agent-setup/workflows/` that exists in the current framework templates
+- every file under `agent-setup/skills/` that exists in the current framework templates
 - the generated README block only, not the full file
 
 Detection rules:
 - prefer generated markers such as `<!-- generated-by: /init-project -->`
 - for workflows, if the current file lacks explicit stage fields like `Agent:` / `Inputs:` / `Outputs:` / `Pass:` / `OnFailure:`, treat it as old generated content and mark it `replace` unless there is strong evidence of custom user editing
+- for project skills, prefer replacement when the file still looks framework-generated; if it contains user-specific edits beyond stack adaptation, classify it `needs-confirmation`
 - for `.project/state.json`, preserve current values where possible; treat missing orchestration keys as migration targets, not as a reason to reset the whole file blindly
 - if a file differs from the fresh render and contains signs of hand edits, classify it `needs-confirmation`
 
@@ -125,7 +129,12 @@ Create backups only for files that will actually be overwritten.
 - replace old prose workflows with the current explicit stage format
 - if a workflow file was classified `needs-confirmation`, only replace it after confirmation
 
-### 5.3 Project state
+### 5.3 Project skill overrides
+- create missing framework skill overrides under `agent-setup/skills/`
+- replace outdated generated skill overrides with the freshly rendered versions
+- if a skill file was classified `needs-confirmation`, only replace it after confirmation
+
+### 5.4 Project state
 - update `.project/state.json` by preserving existing values and ensuring the orchestration keys exist:
   - `last_workflow_stage`
   - `last_workflow_result`
@@ -134,7 +143,7 @@ Create backups only for files that will actually be overwritten.
   - `repos` (add as `[]` if missing — never overwrite an existing non-empty array)
 - do not reset unrelated state fields such as sprint counters or existing clarifications
 
-### 5.4 Project skill overrides
+### 5.5 Runtime skill sync
 Sync every `agent-setup/skills/*.md` to both runtime directories so project-level overrides stay current:
 
 ```bash
@@ -159,9 +168,10 @@ Report:
 
 Recommended next actions:
 1. Review migrated workflows under `agent-setup/workflows/`
-2. Review `.claude/CLAUDE.md` and `AGENTS.md`
-3. Inspect `.project/state.json` orchestration fields
-4. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
+2. Review migrated project skills under `agent-setup/skills/`
+3. Review `.claude/CLAUDE.md` and `AGENTS.md`
+4. Inspect `.project/state.json` orchestration fields
+5. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
 
 ## Hard rules
 - Never touch files outside the managed core paths listed above

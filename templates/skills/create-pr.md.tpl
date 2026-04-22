@@ -1,4 +1,11 @@
 <!-- generated-by: init-project -->
+---
+name: create-pr
+description: >
+  Open a pull request that is small, correct, and traceable to a sprint task.
+allowed-tools: Bash, Read, Glob, Grep
+---
+
 # Skill: create-pr
 
 ## Objective

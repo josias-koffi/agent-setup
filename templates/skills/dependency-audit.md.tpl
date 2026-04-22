@@ -1,5 +1,12 @@
 <!-- generated-by: /init-project -->
 <!-- vars: AUDIT_CMD -->
+---
+name: dependency-audit
+description: >
+  Scan project dependencies for known vulnerabilities and license issues; block on high/critical findings.
+allowed-tools: Bash, Read
+---
+
 # Skill: dependency-audit
 
 ## Objective

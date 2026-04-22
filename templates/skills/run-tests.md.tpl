@@ -1,5 +1,12 @@
 <!-- generated-by: /init-project -->
 <!-- vars: TEST_CMD, COVERAGE_TOOL -->
+---
+name: run-tests
+description: >
+  Run the full test suite with coverage; block on failure or coverage below spec.
+allowed-tools: Bash, Read
+---
+
 # Skill: run-tests
 
 ## Objective

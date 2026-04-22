@@ -1,5 +1,12 @@
 <!-- generated-by: /init-project -->
 <!-- vars: LINT_CMD, FORMAT_CMD -->
+---
+name: lint-and-format
+description: >
+  Run the project's linter and formatter; block on failure.
+allowed-tools: Bash, Read
+---
+
 # Skill: lint-and-format
 
 ## Objective

@@ -26,6 +26,7 @@
 #   skills/push-to-github/SKILL.md         — agnostic push skill (project overrides this)
 #   skills/create-pr/SKILL.md              — create-pr skill
 #   skills/documentation-from-commits/SKILL.md
+#   skills/reload-projects/SKILL.md            — reload-projects skill
 #   agent-setup/VERSION                    — installed framework version
 #   agent-setup/bin/render-templates.sh    — shell interpolation engine
 #   agent-setup/templates/                 — every static template init-project copies
@@ -82,7 +83,8 @@ for required in \
     skills/upgrade-project.md \
     skills/push-to-github.md \
     skills/create-pr.md \
-    skills/documentation-from-commits.md; do
+    skills/documentation-from-commits.md \
+    skills/reload-projects.md; do
     if [ ! -e "$SCRIPT_DIR/$required" ]; then
         echo "bootstrap: missing $SCRIPT_DIR/$required — repo looks incomplete" >&2
         exit 1
@@ -121,7 +123,8 @@ install_target() {
         "$dest/skills/upgrade-project" \
         "$dest/skills/push-to-github" \
         "$dest/skills/create-pr" \
-        "$dest/skills/documentation-from-commits"
+        "$dest/skills/documentation-from-commits" \
+        "$dest/skills/reload-projects"
 
     echo "Installing agent-setup $NEW_VERSION for $cli_name → $dest"
 
@@ -138,6 +141,7 @@ install_target() {
     run cp "$SCRIPT_DIR/skills/push-to-github.md"            "$dest/skills/push-to-github/SKILL.md"
     run cp "$SCRIPT_DIR/skills/create-pr.md"                 "$dest/skills/create-pr/SKILL.md"
     run cp "$SCRIPT_DIR/skills/documentation-from-commits.md" "$dest/skills/documentation-from-commits/SKILL.md"
+    run cp "$SCRIPT_DIR/skills/reload-projects.md"           "$dest/skills/reload-projects/SKILL.md"
 }
 
 install_target "Claude" "$CLAUDE_DEST"
@@ -156,7 +160,7 @@ cat <<'BANNER'
 
 Global skills (agnostic, same files for Claude Code and Codex CLI):
   init-project, sprint, run-agent, run-workflow, upgrade-project
-  push-to-github, create-pr, documentation-from-commits
+  push-to-github, create-pr, documentation-from-commits, reload-projects
 
 Project-level overrides:
   After running init-project, stack-specific skills are installed to

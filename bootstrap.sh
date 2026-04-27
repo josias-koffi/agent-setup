@@ -73,20 +73,32 @@ if [ ! -f "$SCRIPT_DIR/VERSION" ]; then
 fi
 NEW_VERSION="$(tr -d '[:space:]' <"$SCRIPT_DIR/VERSION")"
 
+# Source skill file -> installed global skill directory.
+SKILL_MAPPINGS=(
+    "skills/init.md:init-project"
+    "skills/sprint.md:sprint"
+    "skills/run-agent.md:run-agent"
+    "skills/run-workflow.md:run-workflow"
+    "skills/upgrade-project.md:upgrade-project"
+    "skills/push-to-github.md:push-to-github"
+    "skills/create-pr.md:create-pr"
+    "skills/documentation-from-commits.md:documentation-from-commits"
+    "skills/reload-projects.md:reload-projects"
+)
+
 for required in \
     templates \
-    bin/render-templates.sh \
-    skills/init.md \
-    skills/sprint.md \
-    skills/run-agent.md \
-    skills/run-workflow.md \
-    skills/upgrade-project.md \
-    skills/push-to-github.md \
-    skills/create-pr.md \
-    skills/documentation-from-commits.md \
-    skills/reload-projects.md; do
+    bin/render-templates.sh; do
     if [ ! -e "$SCRIPT_DIR/$required" ]; then
         echo "bootstrap: missing $SCRIPT_DIR/$required — repo looks incomplete" >&2
+        exit 1
+    fi
+done
+
+for mapping in "${SKILL_MAPPINGS[@]}"; do
+    IFS=':' read -r source_skill _ <<<"$mapping"
+    if [ ! -e "$SCRIPT_DIR/$source_skill" ]; then
+        echo "bootstrap: missing $SCRIPT_DIR/$source_skill — repo looks incomplete" >&2
         exit 1
     fi
 done
@@ -115,16 +127,10 @@ install_target() {
     fi
 
     run mkdir -p "$dest/agent-setup/bin" "$dest/agent-setup/templates"
-    run mkdir -p \
-        "$dest/skills/init-project" \
-        "$dest/skills/sprint" \
-        "$dest/skills/run-agent" \
-        "$dest/skills/run-workflow" \
-        "$dest/skills/upgrade-project" \
-        "$dest/skills/push-to-github" \
-        "$dest/skills/create-pr" \
-        "$dest/skills/documentation-from-commits" \
-        "$dest/skills/reload-projects"
+    for mapping in "${SKILL_MAPPINGS[@]}"; do
+        IFS=':' read -r _ skill_name <<<"$mapping"
+        run mkdir -p "$dest/skills/$skill_name"
+    done
 
     echo "Installing agent-setup $NEW_VERSION for $cli_name → $dest"
 
@@ -133,15 +139,10 @@ install_target() {
     run chmod +x "$dest/agent-setup/bin/render-templates.sh"
     run cp "$SCRIPT_DIR/VERSION" "$dest/agent-setup/VERSION"
 
-    run cp "$SCRIPT_DIR/skills/init.md"                      "$dest/skills/init-project/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/sprint.md"                    "$dest/skills/sprint/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/run-agent.md"                 "$dest/skills/run-agent/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/run-workflow.md"              "$dest/skills/run-workflow/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/upgrade-project.md"           "$dest/skills/upgrade-project/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/push-to-github.md"            "$dest/skills/push-to-github/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/create-pr.md"                 "$dest/skills/create-pr/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/documentation-from-commits.md" "$dest/skills/documentation-from-commits/SKILL.md"
-    run cp "$SCRIPT_DIR/skills/reload-projects.md"           "$dest/skills/reload-projects/SKILL.md"
+    for mapping in "${SKILL_MAPPINGS[@]}"; do
+        IFS=':' read -r source_skill skill_name <<<"$mapping"
+        run cp "$SCRIPT_DIR/$source_skill" "$dest/skills/$skill_name/SKILL.md"
+    done
 }
 
 install_target "Claude" "$CLAUDE_DEST"

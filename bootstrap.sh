@@ -16,6 +16,7 @@
 #   push-to-github
 #   create-pr
 #   upgrade-project
+#   migrate vault_path=/abs/path
 #
 # What gets installed (same files to both ~/.claude and ~/.codex):
 #   skills/init-project/SKILL.md           — init-project skill
@@ -27,6 +28,7 @@
 #   skills/create-pr/SKILL.md              — create-pr skill
 #   skills/documentation-from-commits/SKILL.md
 #   skills/reload-projects/SKILL.md            — reload-projects skill
+#   skills/migrate/SKILL.md                    — migrate to Obsidian vault
 #   agent-setup/VERSION                    — installed framework version
 #   agent-setup/bin/render-templates.sh    — shell interpolation engine
 #   agent-setup/templates/                 — every static template init-project copies
@@ -84,6 +86,7 @@ SKILL_MAPPINGS=(
     "skills/create-pr.md:create-pr"
     "skills/documentation-from-commits.md:documentation-from-commits"
     "skills/reload-projects.md:reload-projects"
+    "skills/migrate.md:migrate"
 )
 
 for required in \

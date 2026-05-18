@@ -9,6 +9,7 @@ A two-layer system with dual CLI support:
 - `run-workflow` orchestrates a staged multi-agent workflow directly, outside the sprint entrypoint. Accepts a pre-built workflow name or a dynamic agent chain.
 - `upgrade-project` safely migrates previously initialized projects to the latest generated format.
 - `reload-projects` probes repos registered in `state.json.repos`, auto-fills missing metadata, and syncs the repos list to every sibling project.
+- `migrate` moves all project knowledge artifacts (vision, sprints, agents, workflows, spec) from the repo into a centralized Obsidian vault, leaving only `state.json` and `.claude/` in the repo.
 
 ## Install Once
 
@@ -22,11 +23,11 @@ Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if s
 
 ```text
 ~/.claude/
-├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 
 ~/.codex/
-├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects}/SKILL.md
+├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
 ```
 
@@ -50,12 +51,59 @@ $init-project ./vision.md
 
 Important:
 
-- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`, `/upgrade-project`, `/reload-projects`
-- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`, `$upgrade-project`, `$reload-projects`
+- Claude uses slash commands: `/init-project`, `/sprint`, `/run-agent`, `/run-workflow`, `/upgrade-project`, `/reload-projects`, `/migrate`
+- Codex uses skills: `$init-project`, `$sprint`, `$run-agent`, `$run-workflow`, `$upgrade-project`, `$reload-projects`, `$migrate`
 
-If you do not pass a vision file, `init-project` auto-generates `.project/vision.md` from detected context.
+If you do not pass a vision file, `init-project` auto-generates the vision from detected context.
+
+**Obsidian vault mode**: pass `vault_path=/abs/path` to store all knowledge files (agents, workflows, sprints, vision) in an Obsidian vault instead of the repo:
+```bash
+/init-project ./vision.md vault_path=~/my-vault
+```
 
 Important: `init-project` does not overwrite existing generated files. Use `upgrade-project` to migrate older initialized projects.
+
+## Obsidian Vault (centralized knowledge)
+
+All project knowledge files (vision, sprints, agents, workflows, spec, decisions) can live in a shared Obsidian vault instead of each repo. Only `.project/state.json` and `.claude/` stay in the repo.
+
+### New project with vault
+
+```bash
+/init-project ./vision.md vault_path=~/my-vault
+```
+
+The vault is created if it does not exist. A `<project-name>/` folder is created inside.
+
+### Migrate existing project to vault
+
+```bash
+/migrate vault_path=~/my-vault
+```
+
+Migrates `.project/` and `agent-setup/` content to the vault. Shows a preview and asks for confirmation before moving any files. Creates a backup in `.project/upgrades/<timestamp>/`.
+
+### Vault structure
+
+```text
+~/my-vault/
+├── .obsidian/app.json
+├── _index.md                  # all projects index
+└── <project-name>/
+    ├── _README.md             # wikilinks overview
+    ├── vision.md
+    ├── spec/engineering-standards.md
+    ├── agents/<role>/{agent.md,memory.md}
+    ├── workflows/definitions/  # workflow definitions
+    ├── workflows/runs/         # execution artifacts
+    ├── sprints/{backlog.md,sprint-NNN.md}
+    ├── decisions/
+    ├── designs/
+    ├── spikes/
+    └── releases/
+```
+
+All skills (`sprint`, `run-agent`, `run-workflow`) automatically resolve paths through `vault_project_path` stored in `.project/state.json`.
 
 ## Multi-Repo Projects
 

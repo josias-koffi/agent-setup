@@ -27,15 +27,43 @@ It must not overwrite existing core generated files until it has:
 2. shown a migration preview
 3. received explicit confirmation in the current session
 
+## Vault detection
+
+Before starting, read `.project/state.json` and check `vault_project_path`.
+
+If `vault_project_path` is set and non-null (**vault mode**):
+- `AGENTS_DIR` = `<vault_project_path>/agents`
+- `WORKFLOWS_DEF_DIR` = `<vault_project_path>/workflows/definitions`
+- `SPEC_FILE` = `<vault_project_path>/spec/engineering-standards.md`
+
+Otherwise (**legacy mode**):
+- `AGENTS_DIR` = `agent-setup/agents`
+- `WORKFLOWS_DEF_DIR` = `agent-setup/workflows`
+- `SPEC_FILE` = `agent-setup/spec/engineering-standards.md`
+
 ## Migration scope
 
 Migrate core files only:
-- `agent-setup/workflows/*.md`
+
+**Always in repo:**
 - `agent-setup/skills/*.md`
 - `AGENTS.md`
 - `.claude/CLAUDE.md`
 - `.project/state.json`
 - the generated README block if it exists and is outdated
+
+**In vault (vault mode) or repo (legacy mode):**
+- `$WORKFLOWS_DEF_DIR/*.md`
+- `$SPEC_FILE`
+
+**Vault-only (vault mode):**
+- `<vault_project_path>/_README.md` — refresh generated content; preserve user-authored sections
+- `<vault_project_path>/_MOC_Sprints.md` — create if missing; otherwise leave user edits intact
+- `<vault_project_path>/_MOC_Workflows.md` — same
+- `<vault_project_path>/_MOC_Decisions.md` — same
+- `<vault_project_path>/_MOC_Agents.md` — same
+- `<vault_project_path>/sprints/sprint-001.md` — `needs-confirmation` if user edits detected; only inject missing frontmatter + `## 🔁 Workflow Runs` section when classified `replace`
+- `<vault_project_path>/sprints/backlog.md` — same rule as sprint-001
 
 Do not rewrite user source code or arbitrary project files.
 After refreshing project-local `agent-setup/skills/*.md`, sync them to `.claude/skills/` and `.codex/skills/` as part of migration (see Phase 5.5).
@@ -76,12 +104,13 @@ Managed paths:
 - `AGENTS.md`
 - `.claude/CLAUDE.md`
 - `.project/state.json`
-- every file under `agent-setup/workflows/` that exists in the current framework templates
+- every file under `$WORKFLOWS_DEF_DIR/` that exists in the current framework templates
 - every file under `agent-setup/skills/` that exists in the current framework templates
 - the generated README block only, not the full file
 
 Detection rules:
 - prefer generated markers such as `<!-- generated-by: /init-project -->`
+- for `$SPEC_FILE`, if the file lacks the `## 9. Active Refactoring` header, treat it as outdated and mark it `replace` (the §9 active-refactoring core principle was added in framework v1.7.0 — projects initialised earlier are missing it)
 - for workflows, if the current file lacks explicit stage fields like `Agent:` / `Inputs:` / `Outputs:` / `Pass:` / `OnFailure:`, treat it as old generated content and mark it `replace` unless there is strong evidence of custom user editing
 - for project skills, prefer replacement when the file still looks framework-generated; if it contains user-specific edits beyond stack adaptation, classify it `needs-confirmation`
 - for `.project/state.json`, preserve current values where possible; treat missing orchestration keys as migration targets, not as a reason to reset the whole file blindly
@@ -124,10 +153,22 @@ Create backups only for files that will actually be overwritten.
 - update only the generated block inside `README.md` if that block exists and is outdated
 - never rewrite user-authored README content outside the generated marker block
 
+### 5.1b Engineering standards & agent templates (active refactoring rollout)
+- Refresh `$SPEC_FILE` whenever the `## 9. Active Refactoring` section is missing (introduced in framework v1.7.0). Always create a backup first.
+- Refresh `$AGENTS_DIR/developer/agent.md` and `$AGENTS_DIR/qa-reviewer/agent.md` whenever they lack the "Active refactoring" Responsibilities/Guardrails block, applying the standard `replace` vs `needs-confirmation` classification.
+- Do not rewrite `$AGENTS_DIR/*/memory.md` — memory is append-only. Future entries will pick up the new format automatically.
+
 ### 5.2 Workflows
-- create missing framework workflows under `agent-setup/workflows/`
+- create missing framework workflows under `$WORKFLOWS_DEF_DIR/`
 - replace old prose workflows with the current explicit stage format
 - if a workflow file was classified `needs-confirmation`, only replace it after confirmation
+
+### 5.2b Vault MOCs and entry docs (vault mode only)
+Skip this section entirely in legacy mode.
+- create `<vault_project_path>/_MOC_Sprints.md`, `_MOC_Workflows.md`, `_MOC_Decisions.md`, `_MOC_Agents.md` if absent (render from `templates/obsidian/_MOC_*.md.tpl`)
+- refresh `<vault_project_path>/_README.md` only if it lacks the `## Maps of Content` section — insert that section above the existing `## Quick links` block; leave other sections untouched
+- for `sprints/sprint-001.md` and `sprints/backlog.md`: if classified `replace`, inject the frontmatter block from the latest template at the top of the file (skip if frontmatter already present); add `## 🔁 Workflow Runs` section if missing
+- never rewrite agent memory files, decisions, designs, spikes, releases, or workflow run artifacts — those are append-only history
 
 ### 5.3 Project skill overrides
 - create missing framework skill overrides under `agent-setup/skills/`
@@ -141,6 +182,8 @@ Create backups only for files that will actually be overwritten.
   - `active_workflow_run`
   - `workflow_runs`
   - `repos` (add as `[]` if missing — never overwrite an existing non-empty array)
+  - `vault_path` (add as `null` if missing — never overwrite an existing value)
+  - `vault_project_path` (add as `null` if missing — never overwrite an existing value)
 - do not reset unrelated state fields such as sprint counters or existing clarifications
 
 ### 5.5 Runtime skill sync

@@ -1,17 +1,17 @@
 <!-- generated-by: /init-project -->
-<!-- vars: PROJECT_NAME, STACK_DETAILS, ARCHITECTURE_STYLE, LINT_CMD, FORMAT_CMD, TEST_CMD, BUILD_CMD, DEV_CMD -->
+<!-- vars: PROJECT_NAME, STACK_DETAILS, ARCHITECTURE_STYLE, LINT_CMD, FORMAT_CMD, TEST_CMD, BUILD_CMD, DEV_CMD, VAULT_PROJECT_PATH, SPEC_PATH, AGENTS_DIR, WORKFLOWS_DEF_DIR, WORKFLOWS_RUNS_DIR, SPRINTS_DIR, VISION_PATH -->
 # CLAUDE.md — {{PROJECT_NAME}}
 
-> Auto-loaded by Claude Code every session. Keep this file short. Long content goes in spec/, agent-setup/agents/<role>/, or .project/.
+> Auto-loaded by Claude Code every session. Keep this file short. Long content goes in spec/, agents/<role>/, or sprints/.
 
 Codex CLI sessions should also read `AGENTS.md` at the repo root.
 
 ## Project
 - Name: {{PROJECT_NAME}}
-- Vision: `.project/vision.md` (source of truth, never auto-edit)
+- Vision: `{{VISION_PATH}}` (source of truth, never auto-edit)
 - State: `.project/state.json`
-- Engineering spec: `agent-setup/spec/engineering-standards.md` (read before coding)
-- Workflow artifacts: `.project/workflows/`
+- Engineering spec: `{{SPEC_PATH}}` (read before coding)
+- Workflow runs: `{{WORKFLOWS_RUNS_DIR}}/`
 
 ## Stack (detected)
 - {{STACK_DETAILS}}
@@ -25,33 +25,38 @@ Codex CLI sessions should also read `AGENTS.md` at the repo root.
 - Dev: `{{DEV_CMD}}`
 
 ## Agents — one per role, with own memory
-- Product Owner -> `agent-setup/agents/product-owner/agent.md` + `memory.md`
-- Developer -> `agent-setup/agents/developer/agent.md` + `memory.md`
-- Designer -> `agent-setup/agents/designer/agent.md` + `memory.md`
-- Analyst -> `agent-setup/agents/analyst/agent.md` + `memory.md`
-- QA Reviewer -> `agent-setup/agents/qa-reviewer/agent.md` + `memory.md`
-- Tech Lead -> `agent-setup/agents/tech-lead/agent.md` + `memory.md`
-- Specialised -> `agent-setup/agents/specialized/`
+- Product Owner -> `{{AGENTS_DIR}}/product-owner/agent.md` + `memory.md`
+- Developer -> `{{AGENTS_DIR}}/developer/agent.md` + `memory.md`
+- Designer -> `{{AGENTS_DIR}}/designer/agent.md` + `memory.md`
+- Analyst -> `{{AGENTS_DIR}}/analyst/agent.md` + `memory.md`
+- QA Reviewer -> `{{AGENTS_DIR}}/qa-reviewer/agent.md` + `memory.md`
+- Tech Lead -> `{{AGENTS_DIR}}/tech-lead/agent.md` + `memory.md`
+- Specialised -> `{{AGENTS_DIR}}/specialized/`
+
+## Path resolution
+Read `.project/state.json` for `vault_project_path`. If set, all agent/workflow/sprint paths are under the vault. Skills resolve paths automatically.
 
 ## Memory protocol
 Before substantial work, every agent must read:
 1. `.claude/CLAUDE.md`
-2. `agent-setup/agents/<own-role>/memory.md`
-3. `agent-setup/spec/engineering-standards.md`
-4. the relevant sprint file when the task is sprint-based
-5. `.project/workflows/<run-id>/` artifacts when the task is workflow-orchestrated
+2. `{{AGENTS_DIR}}/<own-role>/memory.md`
+3. `{{SPEC_PATH}}`
+4. the relevant sprint file: `{{SPRINTS_DIR}}/sprint-NNN.md`
+5. `{{WORKFLOWS_RUNS_DIR}}/<run-id>/` artifacts when workflow-orchestrated
 
 After completing a task or workflow stage, append a dated entry to that agent's `memory.md`.
 
 ## Hard rules
-- Never modify `.project/vision.md`
+- Never modify `{{VISION_PATH}}`
 - Never check a sprint task box unless every acceptance criterion is verified
-- Never add features absent from `.project/vision.md` without explicit user approval
-- Never introduce a new framework without an ADR in `.project/decisions/`
+- Never add features absent from the vision without explicit user approval
+- Never introduce a new framework without an ADR in the decisions folder
+- **Active refactoring is part of every task** — on every touched file, fix obvious duplication, dead code, and size violations (see `{{SPEC_PATH}}` §9). On existing/active projects this is in-scope of the current task, not a separate sprint. Untouched files stay untouched.
 
 ## Project commands
 ```text
-/init-project [optional-vision-file.md]
+/init-project [optional-vision-file.md] [vault_path=/abs/path]
+/migrate [vault_path=/abs/path]
 /sprint <sprint-number> [task-id]
 /run-agent <agent> <task text>
 /run-workflow <workflow> <task-id|task-text>
@@ -59,7 +64,9 @@ After completing a task or workflow stage, append a dated entry to that agent's 
 ```
 
 ## Command semantics
-- `/sprint` = sprint-scoped workflow orchestration using the workflow declared by each sprint task
+- `/init-project` = initialize project; use `vault_path=` to enable Obsidian vault mode
+- `/migrate` = migrate existing .project/ and agent-setup/ to an Obsidian vault
+- `/sprint` = sprint-scoped workflow orchestration
 - `/run-agent` = ad hoc single-agent execution outside sprint files
-- `/run-workflow` = direct staged multi-agent orchestration with persisted handoff artifacts under `.project/workflows/`
+- `/run-workflow` = direct staged multi-agent orchestration
 - `/upgrade-project` = safe preview-first migration for older initialized projects

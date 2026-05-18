@@ -21,18 +21,32 @@ Example:
 
 ## Strict sequence
 
+### 0. Path resolution
+
+Read `.project/state.json`. Extract `vault_project_path` (may be null or absent).
+
+If `vault_project_path` is set and non-null, use vault paths:
+- `SPEC_FILE` = `<vault_project_path>/spec/engineering-standards.md`
+- `AGENTS_DIR` = `<vault_project_path>/agents`
+- `VISION_FILE` = `<vault_project_path>/vision.md`
+
+Otherwise (legacy mode):
+- `SPEC_FILE` = `agent-setup/spec/engineering-standards.md`
+- `AGENTS_DIR` = `agent-setup/agents`
+- `VISION_FILE` = `.project/vision.md`
+
 ### 1. Load context
 
 Load in this order to maximise prompt-cache hits (stable content first, dynamic last).
 
 **Static — load first (cache candidates for Claude Code):**
-- `agent-setup/spec/engineering-standards.md`
+- `$SPEC_FILE`
 - `.claude/CLAUDE.md`
 - `AGENTS.md`
-- `agent-setup/agents/<agent>/agent.md`
+- `$AGENTS_DIR/<agent>/agent.md`
 
 **Semi-static — load next:**
-- `agent-setup/agents/<agent>/memory.md`
+- `$AGENTS_DIR/<agent>/memory.md`
 
 **Dynamic — load last:**
 - `.project/state.json`
@@ -51,7 +65,7 @@ If `state.json.repos` is non-empty after discovery, prepend a compact repos bloc
 ```
 
 **Lazy — load only when needed:**
-- `.project/vision.md`: load only if the agent's Inputs list it or the task explicitly requires vision context. Skip otherwise.
+- `$VISION_FILE`: load only if the agent's Inputs list it or the task explicitly requires vision context. Skip otherwise.
 
 ### 2. Validate
 Stop on failure if:
@@ -72,11 +86,16 @@ Stop on failure if:
 - Do not create `.project/workflows/<run-id>/` artifacts unless the user explicitly asked for `run-workflow`.
 
 ### 5. Update agent memory
-Append a dated entry to `agent-setup/agents/<agent>/memory.md`:
-- Did
-- Why
-- Learned
-- Open
+Append a dated entry to `$AGENTS_DIR/<agent>/memory.md` using the linked format:
+```
+## <YYYY-MM-DD> — <task short title> (ad hoc · run-agent)
+- **Context**: ad hoc · last sprint [[sprints/sprint-<NNN>]] · last run [[workflows/runs/<state.last_workflow_run-id>]] (if any)
+- **Did**: <what was done>
+- **Why**: <reason>
+- **Learned**: <insight>
+- **Open**: <unresolved — link to [[decisions/ADR-...]] or [[spikes/SPIKE-...]] if produced>
+```
+Wikilinks must point to vault-relative paths when `vault_project_path` is set; in legacy mode, write the same logical paths anyway so the graph survives `/migrate`.
 
 ### 6. Report
 Include:

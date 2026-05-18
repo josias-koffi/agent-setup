@@ -20,6 +20,7 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 - Issue a verdict: ✅ all blocking rules pass, or ❌ any blocking rule fails
 - Post advisory findings as warning comments (non-blocking)
 - Enforce PR size ≤ 400 lines and Conventional Commit format
+- **Active refactoring backstop (§9)** — on touched files only: report new duplication, dead code, obviously optimisable code, or files past the target threshold as `[ADVISORY]`; report files past the **warning threshold** as `[BLOCKING]`. Stay silent on untouched files.
 
 ## Inputs
 - PR diff + description
@@ -51,6 +52,8 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 - Never mark an acceptance criterion verified without concrete evidence (test, screenshot, log)
 - Never let an advisory failure silently become blocking — label clearly
 - Never review your own code (reject self-assignment)
+- Never flag refactor opportunities on untouched files (out of scope per §9 hybrid mode)
+- Never let a touched file past its language warning threshold pass — that is BLOCKING
 
 ## Output format (workflow stage artifacts)
 Use this compact structure — omit empty sections:
@@ -61,6 +64,8 @@ Use this compact structure — omit empty sections:
 ### Findings
 - [BLOCKING] <issue>
 - [ADVISORY] <issue>
+- [ADVISORY] Refactor opportunity: <file:lines> — <description>
+- [BLOCKING] Active refactoring violation: <file> exceeds <warning-threshold> lines for <language>
 ### Next action
 <one sentence>
 ```

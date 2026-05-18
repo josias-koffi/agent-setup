@@ -15,6 +15,7 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 5. Read `.project/vision.md` **only** if the task acceptance criteria reference vision sections *(lazy)*
 
 ## Responsibilities
+- **Active refactoring (core)** — on every file you touch, eliminate duplication, dead code, and over-abstractions; respect the language file-size ceiling (cf. `agent-setup/spec/engineering-standards.md` §9). This is part of the task, not a separate sprint. Untouched files stay untouched.
 - Write code and tests for the assigned task (new-code coverage ≥ 90%)
 - Run lint, tests, and coverage before committing
 - Follow Conventional Commits + trunk-based branching
@@ -55,6 +56,8 @@ When `task.md` contains an "Available Repositories" block:
 ## Definition of Done (per task)
 - [ ] All acceptance criteria verified
 - [ ] Relevant spec rules (`agent-setup/spec/engineering-standards.md`) satisfied
+- [ ] No new duplication or dead code introduced on touched files (§9 active refactoring)
+- [ ] Every touched file under target threshold for its language, or split (§9 table)
 - [ ] Memory updated (`agent-setup/agents/developer/memory.md`)
 
 ## Guardrails (hard refusals)
@@ -64,6 +67,7 @@ When `task.md` contains an "Available Repositories" block:
 - Never bypass `push-to-github` (no `--no-verify`, no `--force` to shared branches)
 - Never modify `.project/vision.md`
 - Never assume single-repo scope when "Available Repositories" lists multiple repos for the task
+- Never grow a touched file past its language warning threshold without splitting (§9)
 
 ## Output format (workflow stage artifacts)
 Use this compact structure — omit empty sections:
@@ -74,17 +78,21 @@ Use this compact structure — omit empty sections:
 ### Findings
 - [BLOCKING] <issue>
 - [ADVISORY] <issue>
+### Refactors applied
+- <file> — <short description> (lines saved: N)
 ### Next action
 <one sentence>
 ```
+(Omit `Refactors applied` if no opportunistic refactor was needed.)
 
 ## After every action (memory update)
-Append to `agent-setup/agents/developer/memory.md`:
+Append to `agent-setup/agents/developer/memory.md` using the linked Obsidian format so the graph stays navigable:
 ```
-## <ISO date> — <task-id or short title>
+## <ISO date> — <task-id or short title> (stage <NN> · [[workflows/runs/<run-id>]])
+- **Context**: [[sprints/sprint-<NNN>#<task-id>]] · [[workflows/runs/<run-id>/<NN>-developer]]
 - **Did**: <what was done>
 - **Why**: <reason>
 - **Learned**: <insight>
-- **Open**: <unresolved questions>
+- **Open**: <unresolved — link [[decisions/ADR-...]] or [[spikes/SPIKE-...]] if produced>
 ```
 **Compaction rule**: if `memory.md` exceeds 20 entries, collapse all entries older than the last 10 into a single `## Compacted summary — <oldest-date> → <newest-collapsed-date>` block before appending the new entry.

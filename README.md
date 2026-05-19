@@ -15,8 +15,9 @@ A two-layer system with dual CLI support:
 
 ```bash
 bash bootstrap.sh
-bash bootstrap.sh --force
-bash bootstrap.sh --dry-run
+bash bootstrap.sh --force     # back up current install, then reinstall
+bash bootstrap.sh --dry-run   # print what would happen, no writes
+bash bootstrap.sh --no-mcp    # skip the local CVE MCP server install
 ```
 
 Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if set):
@@ -29,7 +30,54 @@ Installs to `~/.claude/` and `~/.codex/` (or `$CLAUDE_HOME` / `$CODEX_HOME` if s
 ~/.codex/
 ├── skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate}/SKILL.md
 └── agent-setup/{VERSION,bin/,templates/}
+
+~/.agent-setup/
+└── vendor/
+    ├── cve-mcp-server/          # cloned + pip-installed in a local venv
+    └── manifest.json            # paths consumed by render-templates.sh
 ```
+
+`bootstrap.sh` additionally clones [`mukul975/cve-mcp-server`](https://github.com/mukul975/cve-mcp-server) into `~/.agent-setup/vendor/cve-mcp-server/`, creates a Python venv inside it, and runs `pip install -e .`. Requires `git` and `python3` ≥ 3.10. If either is missing, bootstrap continues with a warning. Pass `--no-mcp` to skip.
+
+## Default MCP Servers
+
+Every project initialized by `init-project` (≥ v1.9.0) gets two MCP servers wired automatically, mirrored across both runtimes:
+
+| File | Runtime | Servers |
+|------|---------|---------|
+| `.mcp.json` | Claude Code | `context7`, `cve-mcp` |
+| `.codex/config.toml` | Codex CLI (project-local, trusted projects only) | `context7`, `cve-mcp` |
+
+**`context7`** — up-to-date library/framework documentation via [`@upstash/context7-mcp`](https://github.com/upstash/context7). Spawned with `npx -y` (no install). Optional env var `CONTEXT7_API_KEY` for higher rate limits ([dashboard](https://context7.com/dashboard)).
+
+**`cve-mcp`** — 27 security tools across 21 APIs ([`mukul975/cve-mcp-server`](https://github.com/mukul975/cve-mcp-server)): CVE lookup, EPSS scoring, CISA KEV, MITRE ATT&CK, OSV.dev dependency scan, GitHub Security Advisories, Shodan, VirusTotal, AbuseIPDB, GreyNoise, urlscan. Vendored at `~/.agent-setup/vendor/cve-mcp-server/` by `bootstrap.sh`. Works without API keys; set any of these env vars for higher quotas: `NVD_API_KEY`, `GITHUB_TOKEN`, `ABUSEIPDB_KEY`, `GREYNOISE_API_KEY`, `SHODAN_KEY`.
+
+### How it runs
+
+MCP servers are **not daemons**. They are started on demand by the CLI:
+
+1. `cd ~/your-project && claude` (or `codex`)
+2. The CLI reads `.mcp.json` / `.codex/config.toml` and forks a stdio sub-process per server
+3. The servers stay connected for the lifetime of the CLI session — Claude/Codex calls their tools as needed
+4. When the session ends, the sub-processes are killed
+
+No auto-start on reboot is needed; no port is opened; nothing runs in the background between sessions.
+
+### Example usage
+
+Inside a Claude or Codex session, the model picks tools automatically. You can also force them:
+
+```text
+Use context7 to fetch the latest fastapi docs and tell me the recommended dependency pattern in 0.115.
+Use cve-mcp to scan requirements.txt and list the top 5 vulnerable packages by EPSS score.
+Use cve-mcp to check whether CVE-2024-3094 (xz-utils) affects any package in our lockfile.
+```
+
+### Skipping or removing
+
+- Install without CVE MCP: `bash bootstrap.sh --no-mcp` → then delete the `cve-mcp` block from each project's `.mcp.json` and `.codex/config.toml`.
+- Refresh the CVE MCP install (pull latest + reinstall deps): `bash bootstrap.sh --force`.
+- Override install location: `AGENT_SETUP_VENDOR=/custom/path bash bootstrap.sh`.
 
 ## Initialize A Project
 
@@ -207,8 +255,11 @@ It skips repos that already have all fields populated (idempotent) and reports a
 ```text
 your-project/
 ├── AGENTS.md
+├── .mcp.json                    # MCP servers for Claude Code (context7, cve-mcp)
 ├── .claude/
 │   └── CLAUDE.md
+├── .codex/
+│   └── config.toml              # MCP servers for Codex CLI (mirror of .mcp.json)
 ├── .project/
 │   ├── vision.md
 │   ├── state.json
@@ -427,24 +478,28 @@ After acting, the agent appends a dated entry to its memory file.
 ## Updating
 
 ```bash
-bash bootstrap.sh --force
+bash bootstrap.sh --force        # refreshes framework + pulls latest CVE MCP and reinstalls its venv
 ```
 
-For older initialized projects:
+For older initialized projects (adds `.mcp.json` and `.codex/config.toml` when missing, with confirmation if they already exist):
 
 ```bash
-/upgrade-project
-```
-
-or in Codex:
-
-```text
-$upgrade-project
+/upgrade-project        # Claude
+$upgrade-project        # Codex
 ```
 
 ## Uninstall
 
 ```bash
-rm -rf ~/.claude/agent-setup ~/.claude/skills/init-project ~/.claude/skills/sprint ~/.claude/skills/run-agent ~/.claude/skills/run-workflow ~/.claude/skills/upgrade-project ~/.claude/skills/reload-projects
-rm -rf ~/.codex/agent-setup ~/.codex/skills/init-project ~/.codex/skills/sprint ~/.codex/skills/run-agent ~/.codex/skills/run-workflow ~/.codex/skills/upgrade-project ~/.codex/skills/reload-projects
+rm -rf ~/.claude/agent-setup ~/.claude/skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate,push-to-github,create-pr,documentation-from-commits}
+rm -rf ~/.codex/agent-setup  ~/.codex/skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate,push-to-github,create-pr,documentation-from-commits}
+rm -rf ~/.agent-setup    # vendored MCP servers (CVE MCP clone + venv)
 ```
+
+## Changelog Highlights
+
+- **v1.9.0** — `bootstrap.sh` now installs the **CVE MCP server** locally (`mukul975/cve-mcp-server`) into `~/.agent-setup/vendor/cve-mcp-server/` with its own Python venv. `init-project` generates `.mcp.json` and `.codex/config.toml` wiring both `context7` and `cve-mcp` automatically. New flag: `bash bootstrap.sh --no-mcp`.
+- **v1.8.0** — Default MCP servers framework: shared templates `.mcp.json` (Claude) + `.codex/config.toml` (Codex), Context7 by default.
+- **v1.7.0** — Active refactoring promoted to core engineering principle (`spec/engineering-standards.md §9`). Developer/QA agent templates updated.
+- **v1.6.0** — Obsidian-aware skills: `migrate` skill, vault-mode workflows.
+- **v1.5.0** — Obsidian vault integration (`vault_path=` arg on `init-project`).

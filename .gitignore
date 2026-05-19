@@ -2,10 +2,12 @@
 .idea/
 .vscode/
 
-# Local Claude Code project state (artefacts from running /init on this repo itself,
-# not part of the framework source)
+# Local Claude Code / Codex project state (artefacts from running /init on this repo
+# itself, not part of the framework source)
 .claude/
+.codex/
 .project/
+.mcp.json
 
 # Stray directories that only appear if someone runs /init inside this repo
 /agents/

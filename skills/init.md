@@ -119,6 +119,11 @@ Required env vars for the renderer:
 - `VISION_MODE`, `DETECTED_FEATURES_BLOCK`, `CLARIFICATIONS_JSON_ARRAY`
 - `VAULT_PATH`, `VAULT_PROJECT_PATH` (empty strings in legacy mode)
 
+Optional MCP env vars (defaulted by the renderer to `$HOME/.agent-setup/vendor/cve-mcp-server` when unset, matching `bootstrap.sh` install layout):
+- `CVE_MCP_HOME`, `CVE_MCP_PYTHON` — override only when CVE MCP is installed at a non-default path.
+
+If the user passed `bash bootstrap.sh --no-mcp`, warn that `.mcp.json` and `.codex/config.toml` will still reference `cve-mcp` and instruct removal of those blocks after init.
+
 Rules:
 - Every renderer variable must be provided.
 - `CLARIFICATIONS_JSON_ARRAY` must be valid JSON.

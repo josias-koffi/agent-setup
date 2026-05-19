@@ -6,6 +6,7 @@
 #   bash bootstrap.sh            # installs only if not at the latest version
 #   bash bootstrap.sh --force    # back up current install, then reinstall
 #   bash bootstrap.sh --dry-run  # print what would be done, no writes
+#   bash bootstrap.sh --no-mcp   # skip the local CVE MCP server install
 #
 # After install, from ANY project directory:
 #   claude / codex
@@ -33,6 +34,11 @@
 #   agent-setup/bin/render-templates.sh    — shell interpolation engine
 #   agent-setup/templates/                 — every static template init-project copies
 #
+# Vendored MCP servers (shared across both runtimes):
+#   $HOME/.agent-setup/vendor/cve-mcp-server/  — CVE MCP server (mukul975/cve-mcp-server)
+#                                                cloned + pip-installed in a local venv
+#   $HOME/.agent-setup/vendor/manifest.json    — paths consumed by init-project/upgrade-project
+#
 # Project-level skill overrides:
 #   After running init-project in a project, stack-specific skills are installed to
 #   .claude/skills/ and .codex/skills/ within the project directory. These take
@@ -49,10 +55,12 @@ CODEX_DEST="${CODEX_HOME:-$HOME/.codex}"
 
 FORCE=0
 DRY_RUN=0
+SKIP_MCP=0
 for arg in "$@"; do
     case "$arg" in
         --force)   FORCE=1 ;;
         --dry-run) DRY_RUN=1 ;;
+        --no-mcp)  SKIP_MCP=1 ;;
         -h|--help)
             grep -E '^# ' "$0" | sed 's/^# \{0,1\}//'
             exit 0
@@ -60,6 +68,10 @@ for arg in "$@"; do
         *) echo "unknown arg: $arg" >&2; exit 1 ;;
     esac
 done
+
+MCP_VENDOR_DIR="${AGENT_SETUP_VENDOR:-$HOME/.agent-setup/vendor}"
+CVE_MCP_REPO="https://github.com/mukul975/cve-mcp-server.git"
+CVE_MCP_HOME="$MCP_VENDOR_DIR/cve-mcp-server"
 
 run() {
     if [ "$DRY_RUN" = 1 ]; then
@@ -150,6 +162,63 @@ install_target() {
 
 install_target "Claude" "$CLAUDE_DEST"
 install_target "Codex"  "$CODEX_DEST"
+
+# Install CVE MCP server locally (default MCP for vulnerability/CVE lookups).
+# Skipped with --no-mcp, or silently degraded when git/python3 are missing.
+install_cve_mcp() {
+    if [ "$SKIP_MCP" = 1 ]; then
+        echo "Skipping CVE MCP install (--no-mcp)."
+        return 0
+    fi
+    if ! command -v git >/dev/null 2>&1; then
+        echo "CVE MCP: 'git' not found — skipping. Install git, then re-run bootstrap." >&2
+        return 0
+    fi
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "CVE MCP: 'python3' not found — skipping. Install Python 3.10+, then re-run bootstrap." >&2
+        return 0
+    fi
+
+    run mkdir -p "$MCP_VENDOR_DIR"
+
+    if [ -d "$CVE_MCP_HOME/.git" ]; then
+        if [ "$FORCE" = 1 ]; then
+            echo "Refreshing CVE MCP server → $CVE_MCP_HOME"
+            run git -C "$CVE_MCP_HOME" fetch --quiet origin
+            run git -C "$CVE_MCP_HOME" reset --hard origin/HEAD
+        else
+            echo "CVE MCP server already cloned at $CVE_MCP_HOME (use --force to refresh)."
+        fi
+    else
+        echo "Cloning CVE MCP server → $CVE_MCP_HOME"
+        run git clone --quiet --depth 1 "$CVE_MCP_REPO" "$CVE_MCP_HOME"
+    fi
+
+    if [ "$DRY_RUN" = 1 ]; then
+        printf '  [dry-run] python3 -m venv %s/.venv\n' "$CVE_MCP_HOME"
+        printf '  [dry-run] %s/.venv/bin/pip install -e %s\n' "$CVE_MCP_HOME" "$CVE_MCP_HOME"
+        return 0
+    fi
+
+    if [ ! -x "$CVE_MCP_HOME/.venv/bin/python" ]; then
+        echo "Creating venv at $CVE_MCP_HOME/.venv"
+        python3 -m venv "$CVE_MCP_HOME/.venv"
+    fi
+    echo "Installing CVE MCP server dependencies (pip install -e .)"
+    "$CVE_MCP_HOME/.venv/bin/pip" install --quiet --upgrade pip
+    "$CVE_MCP_HOME/.venv/bin/pip" install --quiet -e "$CVE_MCP_HOME"
+
+    # Manifest so init-project / upgrade-project can locate the install
+    cat >"$MCP_VENDOR_DIR/manifest.json" <<EOF
+{
+  "cve_mcp_home": "$CVE_MCP_HOME",
+  "cve_mcp_python": "$CVE_MCP_HOME/.venv/bin/python"
+}
+EOF
+    echo "CVE MCP install complete."
+}
+
+install_cve_mcp
 
 if [ "$DRY_RUN" = 1 ]; then
     echo

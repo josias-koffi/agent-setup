@@ -81,9 +81,17 @@ REQUIRED_VARS=(
     VISION_MODE DETECTED_FEATURES_BLOCK CLARIFICATIONS_JSON_ARRAY
     VISION_PATH SPEC_PATH AGENTS_DIR WORKFLOWS_DEF_DIR WORKFLOWS_RUNS_DIR SPRINTS_DIR
 )
+
+# MCP vendor paths — populated by bootstrap.sh and exported here so templates
+# always resolve, even if the caller did not set them explicitly.
+MCP_VENDOR_DIR="${AGENT_SETUP_VENDOR:-$HOME/.agent-setup/vendor}"
+CVE_MCP_HOME="${CVE_MCP_HOME:-$MCP_VENDOR_DIR/cve-mcp-server}"
+CVE_MCP_PYTHON="${CVE_MCP_PYTHON:-$CVE_MCP_HOME/.venv/bin/python}"
+export CVE_MCP_HOME CVE_MCP_PYTHON
+MCP_VARS=(CVE_MCP_HOME CVE_MCP_PYTHON)
 ROLE_VARS=(ROLE_NAME ROLE_TITLE ROLE_SLUG)
 VAULT_VARS=(VAULT_PATH VAULT_PROJECT_PATH)
-VARS=("${REQUIRED_VARS[@]}" "${ROLE_VARS[@]}" "${VAULT_VARS[@]}")
+VARS=("${REQUIRED_VARS[@]}" "${ROLE_VARS[@]}" "${VAULT_VARS[@]}" "${MCP_VARS[@]}")
 
 missing=()
 for var in "${REQUIRED_VARS[@]}"; do
@@ -152,6 +160,8 @@ render_obsidian_one() {
 
 render_one "$TPL_ROOT/claude/CLAUDE.md.tpl"     ".claude/CLAUDE.md"
 render_one "$TPL_ROOT/claude/settings.json.tpl" ".claude/settings.json"
+render_one "$TPL_ROOT/mcp/mcp.json.tpl"          ".mcp.json"
+render_one "$TPL_ROOT/mcp/codex-config.toml.tpl" ".codex/config.toml"
 render_one "$TPL_ROOT/codex/AGENTS.md.tpl"       "AGENTS.md"
 render_one "$TPL_ROOT/project/state.json.tpl"    ".project/state.json"
 

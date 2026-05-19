@@ -50,6 +50,14 @@ This repository uses a multi-agent workflow for Codex CLI sessions.
 ## Memory protocol
 After completing a task or workflow stage, append a dated entry to `agent-setup/agents/<own-role>/memory.md`.
 
+## MCP servers
+Codex CLI reads project-local config from `.codex/config.toml`; Claude Code reads `.mcp.json`. Both ship the same defaults, installed by `bootstrap.sh`.
+
+- `context7` — up-to-date docs. Optional `CONTEXT7_API_KEY` for higher rate limits.
+- `cve-mcp` — `mukul975/cve-mcp-server`, vendored at `$HOME/.agent-setup/vendor/cve-mcp-server` with its own venv. Optional env keys: `NVD_API_KEY`, `GITHUB_TOKEN`, `ABUSEIPDB_KEY`, `GREYNOISE_API_KEY`, `SHODAN_KEY`.
+
+Skip CVE install with `bash bootstrap.sh --no-mcp`; then remove the `cve-mcp` block from both config files.
+
 ## Project commands
 ```text
 $init-project [optional-vision-file.md]

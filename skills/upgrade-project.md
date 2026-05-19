@@ -49,6 +49,8 @@ Migrate core files only:
 - `agent-setup/skills/*.md`
 - `AGENTS.md`
 - `.claude/CLAUDE.md`
+- `.mcp.json` — Claude Code MCP servers (default: `context7`)
+- `.codex/config.toml` — Codex CLI MCP servers (mirror of `.mcp.json`)
 - `.project/state.json`
 - the generated README block if it exists and is outdated
 
@@ -103,6 +105,8 @@ For each managed path, classify it as exactly one of:
 Managed paths:
 - `AGENTS.md`
 - `.claude/CLAUDE.md`
+- `.mcp.json`
+- `.codex/config.toml`
 - `.project/state.json`
 - every file under `$WORKFLOWS_DEF_DIR/` that exists in the current framework templates
 - every file under `agent-setup/skills/` that exists in the current framework templates
@@ -150,6 +154,8 @@ Create backups only for files that will actually be overwritten.
 ### 5.1 Core docs
 - create or replace `AGENTS.md`
 - create or replace `.claude/CLAUDE.md`
+- create `.mcp.json` if missing; if present, classify `needs-confirmation` (user may have added custom servers) and leave alone unless confirmed
+- create `.codex/config.toml` if missing; same `needs-confirmation` rule when it already exists
 - update only the generated block inside `README.md` if that block exists and is outdated
 - never rewrite user-authored README content outside the generated marker block
 

@@ -53,6 +53,19 @@ After completing a task or workflow stage, append a dated entry to that agent's 
 - Never introduce a new framework without an ADR in the decisions folder
 - **Active refactoring is part of every task** — on every touched file, fix obvious duplication, dead code, and size violations (see `{{SPEC_PATH}}` §9). On existing/active projects this is in-scope of the current task, not a separate sprint. Untouched files stay untouched.
 
+## MCP servers
+Two config files shipped, one per runtime — both versioned at repo root:
+- `.mcp.json` — Claude Code
+- `.codex/config.toml` — Codex CLI (project-local; trusted projects only)
+
+Keep them in sync when adding a server.
+
+**Active by default (installed by `bootstrap.sh`):**
+- `context7` — up-to-date library/framework documentation. Use before adopting a new API or upgrading a dependency. Optional `CONTEXT7_API_KEY` env var for higher rate limits (https://context7.com/dashboard).
+- `cve-mcp` (`mukul975/cve-mcp-server`) — 27 security tools (OSV.dev, GitHub Security Advisories, CISA KEV, MITRE ATT&CK). Vendored at `$HOME/.agent-setup/vendor/cve-mcp-server` with its own venv. Optional API keys via env: `NVD_API_KEY`, `GITHUB_TOKEN`, `ABUSEIPDB_KEY`, `GREYNOISE_API_KEY`, `SHODAN_KEY` (works without).
+
+To skip the local CVE MCP install: `bash bootstrap.sh --no-mcp`. If skipped, remove the `cve-mcp` entries from `.mcp.json` and `.codex/config.toml`.
+
 ## Project commands
 ```text
 /init-project [optional-vision-file.md] [vault_path=/abs/path]

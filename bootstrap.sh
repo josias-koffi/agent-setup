@@ -30,6 +30,7 @@
 #   skills/documentation-from-commits/SKILL.md
 #   skills/reload-projects/SKILL.md            — reload-projects skill
 #   skills/migrate/SKILL.md                    — migrate to Obsidian vault
+#   skills/design-critique/SKILL.md            — /critique command (Impeccable-backed design review)
 #   agent-setup/VERSION                    — installed framework version
 #   agent-setup/bin/render-templates.sh    — shell interpolation engine
 #   agent-setup/templates/                 — every static template init-project copies
@@ -99,6 +100,7 @@ SKILL_MAPPINGS=(
     "skills/documentation-from-commits.md:documentation-from-commits"
     "skills/reload-projects.md:reload-projects"
     "skills/migrate.md:migrate"
+    "skills/design-critique.md:design-critique"
 )
 
 for required in \

@@ -152,11 +152,13 @@ Run only when the detected stack is `Next.js`, `Node/JS`, or any stack where a
 `angular`, `solid`, `@angular`).
 
 ```bash
-# Check if Impeccable is already installed
-test -f ".claude/skills/impeccable/SKILL.md" && echo "already-installed" && exit 0
+# Impeccable — anti-pattern scanner + quality gate
+test -f ".claude/skills/impeccable/SKILL.md" \
+  || npx --yes skills add pbakaus/impeccable
 
-# Install Impeccable skill into the project
-npx --yes skills add pbakaus/impeccable
+# frontend-design (Anthropic) — aesthetic direction + Design Thinking scaffolding
+test -f ".claude/skills/frontend-design/SKILL.md" \
+  || npx --yes skills add anthropics/claude-code#plugins/frontend-design
 ```
 
 After install, generate the Impeccable context files:

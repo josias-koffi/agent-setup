@@ -199,11 +199,16 @@ Skip this section entirely in legacy mode.
 - `package.json` contains at least one dependency matching: `react`, `vue`, `next`, `svelte`, `angular`, `solid`, `@angular`
 - The project stack detected in `.project/state.json` is `Next.js`, `Node/JS`, or a front-end variant
 
-**Impeccable install** — skip entirely if `.claude/skills/impeccable/SKILL.md` already exists.
+**Impeccable install** — skip each if already present.
 
 ```bash
-test -f ".claude/skills/impeccable/SKILL.md" && echo "already-installed" \
+# Impeccable — anti-pattern scanner + quality gate
+test -f ".claude/skills/impeccable/SKILL.md" \
   || npx --yes skills add pbakaus/impeccable
+
+# frontend-design (Anthropic) — aesthetic direction + Design Thinking scaffolding
+test -f ".claude/skills/frontend-design/SKILL.md" \
+  || npx --yes skills add anthropics/claude-code#plugins/frontend-design
 ```
 
 **`PRODUCT.md`** — create only if the file does not exist:

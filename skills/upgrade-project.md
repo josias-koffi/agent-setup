@@ -54,6 +54,11 @@ Migrate core files only:
 - `.project/state.json`
 - the generated README block if it exists and is outdated
 
+**UI projects only (when front-end stack detected):**
+- `PRODUCT.md` — create if missing; never overwrite if present (user-authored)
+- `DESIGN.md` — create if missing; never overwrite if present (user-authored)
+- Impeccable skill install — run if not already present in `.claude/skills/impeccable/`
+
 **In vault (vault mode) or repo (legacy mode):**
 - `$WORKFLOWS_DEF_DIR/*.md`
 - `$SPEC_FILE`
@@ -111,9 +116,14 @@ Managed paths:
 - every file under `$WORKFLOWS_DEF_DIR/` that exists in the current framework templates
 - every file under `agent-setup/skills/` that exists in the current framework templates
 - the generated README block only, not the full file
+- `$AGENTS_DIR/designer/agent.md` — classify as `replace` when it lacks the `## Design workflow` section (introduced in framework v1.10.0)
+- `PRODUCT.md` — classify as `create` if missing on a UI project; `skip` if present (user-authored, never overwrite)
+- `DESIGN.md` — same rule as `PRODUCT.md`
 
 Detection rules:
 - prefer generated markers such as `<!-- generated-by: /init-project -->`
+- for `$AGENTS_DIR/designer/agent.md`: if the file lacks the `## Design workflow` section, treat it as pre-v1.10.0 and mark it `replace`. If it contains signs of custom user editing beyond the generated sections, mark it `needs-confirmation`.
+- for `PRODUCT.md` and `DESIGN.md`: always `skip` if the file exists — these are user-authored context files. Only `create` when absent on a UI project.
 - for `$SPEC_FILE`, if the file lacks the `## 9. Active Refactoring` header, treat it as outdated and mark it `replace` (the §9 active-refactoring core principle was added in framework v1.7.0 — projects initialised earlier are missing it)
 - for workflows, if the current file lacks explicit stage fields like `Agent:` / `Inputs:` / `Outputs:` / `Pass:` / `OnFailure:`, treat it as old generated content and mark it `replace` unless there is strong evidence of custom user editing
 - for project skills, prefer replacement when the file still looks framework-generated; if it contains user-specific edits beyond stack adaptation, classify it `needs-confirmation`
@@ -159,10 +169,17 @@ Create backups only for files that will actually be overwritten.
 - update only the generated block inside `README.md` if that block exists and is outdated
 - never rewrite user-authored README content outside the generated marker block
 
-### 5.1b Engineering standards & agent templates (active refactoring rollout)
-- Refresh `$SPEC_FILE` whenever the `## 9. Active Refactoring` section is missing (introduced in framework v1.7.0). Always create a backup first.
-- Refresh `$AGENTS_DIR/developer/agent.md` and `$AGENTS_DIR/qa-reviewer/agent.md` whenever they lack the "Active refactoring" Responsibilities/Guardrails block, applying the standard `replace` vs `needs-confirmation` classification.
-- Do not rewrite `$AGENTS_DIR/*/memory.md` — memory is append-only. Future entries will pick up the new format automatically.
+### 5.1b Engineering standards & agent templates
+
+**Active refactoring rollout (v1.7.0):**
+- Refresh `$SPEC_FILE` whenever the `## 9. Active Refactoring` section is missing. Always create a backup first.
+- Refresh `$AGENTS_DIR/developer/agent.md` and `$AGENTS_DIR/qa-reviewer/agent.md` whenever they lack the "Active refactoring" Responsibilities/Guardrails block.
+
+**Designer agent v1.10.0 upgrade:**
+- Refresh `$AGENTS_DIR/designer/agent.md` whenever the file lacks the `## Design workflow` section, applying the standard `replace` vs `needs-confirmation` classification.
+- The new designer agent introduces: 3-phase workflow (Design Thinking → design doc → Impeccable quality gate), `frontend-design` skill integration, anti-convergence guardrails, and expanded DoD.
+
+Apply the standard `replace` vs `needs-confirmation` classification for all agent template refreshes. Do not rewrite `$AGENTS_DIR/*/memory.md` — memory is append-only.
 
 ### 5.2 Workflows
 - create missing framework workflows under `$WORKFLOWS_DEF_DIR/`
@@ -175,6 +192,55 @@ Skip this section entirely in legacy mode.
 - refresh `<vault_project_path>/_README.md` only if it lacks the `## Maps of Content` section — insert that section above the existing `## Quick links` block; leave other sections untouched
 - for `sprints/sprint-001.md` and `sprints/backlog.md`: if classified `replace`, inject the frontmatter block from the latest template at the top of the file (skip if frontmatter already present); add `## 🔁 Workflow Runs` section if missing
 - never rewrite agent memory files, decisions, designs, spikes, releases, or workflow run artifacts — those are append-only history
+
+### 5.1c Impeccable design integration (UI projects only)
+
+**UI detection** — a project is considered a UI project when any of the following is true:
+- `package.json` contains at least one dependency matching: `react`, `vue`, `next`, `svelte`, `angular`, `solid`, `@angular`
+- The project stack detected in `.project/state.json` is `Next.js`, `Node/JS`, or a front-end variant
+
+**Impeccable install** — skip entirely if `.claude/skills/impeccable/SKILL.md` already exists.
+
+```bash
+test -f ".claude/skills/impeccable/SKILL.md" && echo "already-installed" \
+  || npx --yes skills add pbakaus/impeccable
+```
+
+**`PRODUCT.md`** — create only if the file does not exist:
+
+Generate with this structure, extracting from `vision.md` where available (use `TO CLARIFY` otherwise):
+```markdown
+# Product Design Context
+<!-- generated-by: /upgrade-project -->
+
+## Who we're designing for
+<personas extracted from vision.md, or TO CLARIFY>
+
+## Brand voice
+<tone and personality extracted from vision.md, or TO CLARIFY>
+
+## Anti-references (styles to avoid)
+<extracted from vision.md, or TO CLARIFY>
+```
+
+**`DESIGN.md`** — create only if the file does not exist:
+```markdown
+# Design Spec
+<!-- generated-by: /upgrade-project -->
+
+> Generated stub — run `/impeccable document` to build the full spec.
+
+## Design system
+TO CLARIFY
+
+## Color tokens
+TO CLARIFY
+
+## Typography scale
+TO CLARIFY
+```
+
+If Impeccable install fails (e.g. `npx` unavailable), note the manual command in the final report and continue — do not block the migration.
 
 ### 5.3 Project skill overrides
 - create missing framework skill overrides under `agent-setup/skills/`
@@ -220,7 +286,9 @@ Recommended next actions:
 2. Review migrated project skills under `agent-setup/skills/`
 3. Review `.claude/CLAUDE.md` and `AGENTS.md`
 4. Inspect `.project/state.json` orchestration fields
-5. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
+5. *(UI projects)* Fill `PRODUCT.md` (audience, brand voice, anti-references) and run `/impeccable document` to generate the full `DESIGN.md`
+6. *(UI projects)* Run `/impeccable teach` so the designer agent loads the new context
+7. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
 
 ## Hard rules
 - Never touch files outside the managed core paths listed above

@@ -79,6 +79,76 @@ Use cve-mcp to check whether CVE-2024-3094 (xz-utils) affects any package in our
 - Refresh the CVE MCP install (pull latest + reinstall deps): `bash bootstrap.sh --force`.
 - Override install location: `AGENT_SETUP_VENDOR=/custom/path bash bootstrap.sh`.
 
+## Design Quality (Impeccable)
+
+UI projects get [Impeccable](https://impeccable.style/) wired automatically — an open-source design skill (Apache 2.0) that teaches the AI 29 anti-pattern rules and a vocabulary of intentional design decisions.
+
+### What it does
+
+- Injects deep design knowledge (typography, color, spacing, hierarchy, WCAG) on every prompt — no repeated context needed.
+- Exposes 23 commands covering the full design lifecycle: audit, critique, polish, typeset, colorize, animate, and more.
+- Generates `PRODUCT.md` (brand voice, audience, anti-references) and `DESIGN.md` (spec, tokens, components) as persistent context files.
+- Provides a deterministic CLI scanner (`npx impeccable detect`) that checks 29 rules without API keys — used as a CI/push gate.
+
+### Auto-install on UI projects
+
+`init-project` detects front-end stacks (`react`, `vue`, `next`, `svelte`, `angular`, `solid`) and:
+
+1. Runs `npx skills add pbakaus/impeccable` to install the skill into `.claude/skills/`.
+2. Generates `PRODUCT.md` from `vision.md` (personas → audience, brand voice, anti-references).
+3. Generates a `DESIGN.md` stub — fill it out with `/impeccable document`.
+
+### Manual install
+
+```bash
+npx skills add pbakaus/impeccable
+```
+
+Then bootstrap context:
+
+```text
+/impeccable teach      # establish design context from PRODUCT.md / DESIGN.md
+/impeccable document   # generate full DESIGN.md spec
+```
+
+### Designer agent
+
+The `designer` agent loads `PRODUCT.md` and `DESIGN.md` automatically before every action and runs `/impeccable audit` as part of its Definition of Done (zero `[BLOCKING]` findings required).
+
+Available commands from the designer agent:
+
+| Command | Purpose |
+|---|---|
+| `/impeccable audit` | Evaluate against 29 anti-pattern rules |
+| `/impeccable critique` | Persona-based qualitative review |
+| `/impeccable polish` | Final alignment pass against design system |
+| `/impeccable typeset` | Typography refinement |
+| `/impeccable colorize` | Color system work |
+| `/impeccable layout` | Spatial arrangement |
+| `/impeccable animate` | Motion design |
+| `/impeccable delight` | Add polish and personality |
+| `/impeccable bolder` / `/impeccable quieter` | Adjust visual weight |
+
+### `/critique` skill
+
+Run a full structured critique on any design file, component, or URL:
+
+```text
+/critique                          # auto-detects most recent .project/designs/*.md
+/critique src/components/Hero.tsx  # specific file
+/critique https://your-app.dev     # live URL
+```
+
+Returns a `Verdict / Findings / Impeccable commands to apply / Next action` report.
+
+### Push gate
+
+`push-to-github` runs `npx impeccable detect` when Impeccable is installed and the changeset touches UI files (`*.tsx`, `*.vue`, `*.jsx`, `*.html`, `*.css`, `*.scss`). `[critical]` findings block the push; `[warning]` findings are reported but non-blocking.
+
+### Skipping
+
+If you do not want Impeccable on a UI project, delete `.claude/skills/impeccable/` and remove `PRODUCT.md` / `DESIGN.md`. The push gate silently skips if Impeccable is not installed.
+
 ## Initialize A Project
 
 Claude:
@@ -255,6 +325,8 @@ It skips repos that already have all fields populated (idempotent) and reports a
 ```text
 your-project/
 ├── AGENTS.md
+├── PRODUCT.md                   # Impeccable: brand voice, audience, anti-references (UI projects)
+├── DESIGN.md                    # Impeccable: design spec, tokens, components (UI projects)
 ├── .mcp.json                    # MCP servers for Claude Code (context7, cve-mcp)
 ├── .claude/
 │   └── CLAUDE.md
@@ -498,6 +570,7 @@ rm -rf ~/.agent-setup    # vendored MCP servers (CVE MCP clone + venv)
 
 ## Changelog Highlights
 
+- **v1.10.0** — **Impeccable design quality integration**: UI projects auto-install [Impeccable](https://impeccable.style/) (29 anti-pattern rules, 23 design commands). `init-project` generates `PRODUCT.md` + `DESIGN.md` stubs from `vision.md`. Designer agent loads design context automatically and gates DoD on zero `[BLOCKING]` audit findings. New `/critique` skill for structured design reviews. `push-to-github` runs `npx impeccable detect` as a UI quality gate.
 - **v1.9.0** — `bootstrap.sh` now installs the **CVE MCP server** locally (`mukul975/cve-mcp-server`) into `~/.agent-setup/vendor/cve-mcp-server/` with its own Python venv. `init-project` generates `.mcp.json` and `.codex/config.toml` wiring both `context7` and `cve-mcp` automatically. New flag: `bash bootstrap.sh --no-mcp`.
 - **v1.8.0** — Default MCP servers framework: shared templates `.mcp.json` (Claude) + `.codex/config.toml` (Codex), Context7 by default.
 - **v1.7.0** — Active refactoring promoted to core engineering principle (`spec/engineering-standards.md §9`). Developer/QA agent templates updated.

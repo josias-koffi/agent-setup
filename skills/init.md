@@ -145,6 +145,60 @@ done
 
 This gives each project a stack-specific override that both Claude Code and Codex CLI will prefer over `~/.claude/skills/` and `~/.codex/skills/`.
 
+## Phase 4c — Impeccable install (UI projects)
+
+Run only when the detected stack is `Next.js`, `Node/JS`, or any stack where a
+`package.json` with front-end dependencies is present (`react`, `vue`, `svelte`,
+`angular`, `solid`, `@angular`).
+
+```bash
+# Check if Impeccable is already installed
+test -f ".claude/skills/impeccable/SKILL.md" && echo "already-installed" && exit 0
+
+# Install Impeccable skill into the project
+npx --yes skills add pbakaus/impeccable
+```
+
+After install, generate the Impeccable context files:
+
+1. **`PRODUCT.md`** — If `vision.md` exists, extract:
+   - Target audience / personas → _Who we're designing for_
+   - Brand voice → _Tone and personality_
+   - Known anti-references (competitors, visual styles to avoid)
+
+   Write `PRODUCT.md` with this structure:
+   ```markdown
+   # Product Design Context
+
+   ## Who we're designing for
+   <extracted from vision.md personas, or TO CLARIFY>
+
+   ## Brand voice
+   <extracted from vision.md, or TO CLARIFY>
+
+   ## Anti-references (styles to avoid)
+   <extracted or TO CLARIFY>
+   ```
+
+2. **`DESIGN.md`** — Create a minimal stub (full generation happens via `/impeccable document`):
+   ```markdown
+   # Design Spec
+
+   > Generated stub — run `/impeccable document` to build the full spec.
+
+   ## Design system
+   TO CLARIFY
+
+   ## Color tokens
+   TO CLARIFY
+
+   ## Typography scale
+   TO CLARIFY
+   ```
+
+If `npx skills add` is unavailable or fails, note the manual install command in the
+final report: `npx skills add pbakaus/impeccable` and skip without error.
+
 ## Phase 5 — README append
 
 Append the generated snippet only once, using the existing generated marker.
@@ -174,8 +228,9 @@ Recommend next actions in this order:
 2. Fill any `TO CLARIFY` commands in `.claude/CLAUDE.md`
 3. Review engineering-standards.md
 4. Review sprint-001.md
-5. If this repository was already initialized and now needs framework-managed file updates, use `upgrade-project`
-6. Run `sprint 001` for sprint-scoped orchestration or `run-workflow <workflow> <task-id|task-text>` for direct staged orchestration
+5. *(UI projects only)* Fill `PRODUCT.md` and run `/impeccable document` to build the full `DESIGN.md`
+6. If this repository was already initialized and now needs framework-managed file updates, use `upgrade-project`
+7. Run `sprint 001` for sprint-scoped orchestration or `run-workflow <workflow> <task-id|task-text>` for direct staged orchestration
 
 ## Final self-check
 

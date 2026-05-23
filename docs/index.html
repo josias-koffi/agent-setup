@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Agent Orchestrator — Documentation</title>
+  <style>
+    /* ── Tokens ────────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0d0f18;
+      --surface:     #141720;
+      --surface-2:   #1c1f2e;
+      --border:      #252840;
+      --border-2:    #2e3150;
+      --text:        #dde1f0;
+      --text-2:      #8892b0;
+      --text-3:      #555e7a;
+      --accent:      #5a7cf5;
+      --accent-dim:  #3d54b0;
+      --green:       #34d399;
+      --amber:       #fbbf24;
+      --red:         #f87171;
+      --code-bg:     #10121c;
+      --sidebar-w:   260px;
+      --r:           6px;
+      --font-sans:   -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --font-mono:   "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-header .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .sidebar-header .tagline {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    .version-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 2px 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      border-radius: 20px;
+      font-size: 11px;
+      color: var(--text-2);
+      font-family: var(--font-mono);
+    }
+
+    nav { padding: 12px 0 24px; }
+
+    .nav-group { margin-bottom: 4px; }
+    .nav-group-label {
+      padding: 8px 20px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    nav a {
+      display: block;
+      padding: 6px 20px;
+      font-size: 13.5px;
+      color: var(--text-2);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    nav a:hover { color: var(--text); background: var(--surface-2); }
+    nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(90,124,245,.08); }
+
+    /* ── Main ──────────────────────────────────────────────────────── */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .content {
+      max-width: 820px;
+      padding: 56px 48px 96px;
+    }
+
+    /* ── Hero ──────────────────────────────────────────────────────── */
+    .hero {
+      padding: 56px 48px 48px;
+      border-bottom: 1px solid var(--border);
+      max-width: 820px;
+    }
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .hero .sub {
+      margin-top: 12px;
+      font-size: 16px;
+      color: var(--text-2);
+      max-width: 560px;
+      line-height: 1.6;
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+    .pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+    .pill-blue  { color: var(--accent); border-color: var(--accent-dim); background: rgba(90,124,245,.08); }
+    .pill-green { color: var(--green);  border-color: #1a6e51;            background: rgba(52,211,153,.08); }
+    .pill-amber { color: var(--amber);  border-color: #8a6300;            background: rgba(251,191,36,.08); }
+
+    /* ── Typography ────────────────────────────────────────────────── */
+    section { padding: 48px 0 0; }
+    section:first-of-type { padding-top: 48px; }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 24px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 10px;
+      scroll-margin-top: 24px;
+    }
+    p { margin-bottom: 14px; color: var(--text-2); }
+    p strong { color: var(--text); }
+    ul, ol { margin: 0 0 14px 0; padding-left: 20px; color: var(--text-2); }
+    li { margin-bottom: 5px; }
+    li strong { color: var(--text); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Code ──────────────────────────────────────────────────────── */
+    code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: #c4cff7;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 13px;
+      color: #c4cff7;
+      line-height: 1.65;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px; right: 10px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-family: var(--font-sans);
+      color: var(--text-3);
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--text-3); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* comment lines */
+    .cm  { color: #4a5280; }
+
+    /* ── Tables ────────────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 12px 0 20px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th {
+      text-align: left;
+      padding: 9px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      border-bottom: 1px solid var(--border-2);
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2);
+      vertical-align: top;
+    }
+    td code { font-size: 12.5px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.015); }
+
+    /* ── Callouts ──────────────────────────────────────────────────── */
+    .callout {
+      padding: 14px 18px;
+      border-left: 3px solid;
+      border-radius: 0 var(--r) var(--r) 0;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .callout p { margin: 0; }
+    .callout-info  { border-color: var(--accent); background: rgba(90,124,245,.07); }
+    .callout-warn  { border-color: var(--amber);  background: rgba(251,191,36,.07); }
+    .callout-tip   { border-color: var(--green);  background: rgba(52,211,153,.07); }
+    .callout .label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .callout-info .label  { color: var(--accent); }
+    .callout-warn .label  { color: var(--amber); }
+    .callout-tip .label   { color: var(--green); }
+
+    /* ── Command cards ─────────────────────────────────────────────── */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin: 16px 0 24px;
+    }
+    .cmd-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      transition: border-color 0.15s;
+    }
+    .cmd-card:hover { border-color: var(--border-2); }
+    .cmd-card .cmd-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .cmd-card .cmd-desc {
+      font-size: 12.5px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+
+    /* ── Steps ─────────────────────────────────────────────────────── */
+    .steps { counter-reset: step; margin: 16px 0 24px; }
+    .step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step-num {
+      counter-increment: step;
+      content: counter(step);
+      min-width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body p { margin: 0; color: var(--text-2); font-size: 14px; }
+    .step-body strong { color: var(--text); }
+
+    /* ── DoD checklist ─────────────────────────────────────────────── */
+    .dod li { list-style: none; margin-left: -20px; padding-left: 24px; position: relative; }
+    .dod li::before { content: "□"; position: absolute; left: 0; color: var(--text-3); font-size: 14px; }
+
+    /* ── File tree ─────────────────────────────────────────────────── */
+    .filetree {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 20px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: #8892b0;
+      line-height: 1.8;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      white-space: pre;
+    }
+    .filetree .dir  { color: #c4cff7; }
+    .filetree .ann  { color: #4a5280; }
+    .filetree .new  { color: var(--green); }
+
+    /* ── Agent chips ───────────────────────────────────────────────── */
+    .agent-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 20px;
+    }
+    .agent-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      font-size: 13px;
+    }
+    .agent-chip .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-blue   { background: var(--accent); }
+    .dot-green  { background: var(--green); }
+    .dot-amber  { background: var(--amber); }
+    .dot-purple { background: #a78bfa; }
+    .dot-pink   { background: #f472b6; }
+    .dot-teal   { background: #2dd4bf; }
+
+    /* ── Responsive ────────────────────────────────────────────────── */
+    @media (max-width: 800px) {
+      #sidebar { transform: translateX(-100%); transition: transform 0.2s; }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; }
+      .hero, .content { padding-left: 24px; padding-right: 24px; }
+      #menu-btn {
+        display: flex;
+        position: fixed;
+        top: 14px; left: 14px;
+        z-index: 200;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 8px 10px;
+        cursor: pointer;
+        gap: 4px;
+        flex-direction: column;
+        justify-content: center;
+      }
+      #menu-btn span {
+        display: block;
+        width: 18px; height: 2px;
+        background: var(--text);
+        border-radius: 1px;
+      }
+    }
+    @media (min-width: 801px) {
+      #menu-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile menu button -->
+<button id="menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- Sidebar -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">Agent Orchestrator</div>
+    <div class="tagline">Claude Code &amp; Codex CLI</div>
+    <span class="version-badge">v1.10.0</span>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-group-label">Getting Started</div>
+      <a href="#overview">Overview</a>
+      <a href="#install">Install Once</a>
+      <a href="#init">Init a Project</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Execution</div>
+      <a href="#sprint">sprint</a>
+      <a href="#run-agent">run-agent</a>
+      <a href="#run-workflow">run-workflow</a>
+      <a href="#workflows">Workflow Format</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Infrastructure</div>
+      <a href="#mcp">MCP Servers</a>
+      <a href="#design">Design Quality</a>
+      <a href="#obsidian">Obsidian Vault</a>
+      <a href="#multi-repo">Multi-Repo</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Agents</div>
+      <a href="#agents">Agent Roles</a>
+      <a href="#memory">Memory Protocol</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Reference</div>
+      <a href="#layout">Project Layout</a>
+      <a href="#upgrade">Upgrade &amp; Migrate</a>
+      <a href="#uninstall">Uninstall</a>
+      <a href="#changelog">Changelog</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Main -->
+<div id="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Multi-Agent Project Orchestrator</h1>
+    <p class="sub">A two-layer framework that installs reusable multi-agent workflows globally and bootstraps any repository into a structured, sprint-driven workspace — for both Claude Code and Codex CLI.</p>
+    <div class="hero-pills">
+      <span class="pill pill-blue">Claude Code</span>
+      <span class="pill pill-blue">Codex CLI</span>
+      <span class="pill pill-green">Apache 2.0</span>
+      <span class="pill pill-amber">Multi-agent</span>
+      <span class="pill pill-green">Obsidian vault</span>
+      <span class="pill pill-blue">Impeccable design</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── Overview ── -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>The framework has two layers:</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body"><p><strong><code>bootstrap.sh</code></strong> — installs skills, templates, and vendor MCP servers globally into <code>~/.claude/</code> and <code>~/.codex/</code>. Run once per machine.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body"><p><strong><code>/init-project</code></strong> — generates a local multi-agent workspace inside a specific repository from a vision file. Run once per project.</p></div>
+        </div>
+      </div>
+
+      <h3>Core commands</h3>
+      <div class="cmd-grid">
+        <div class="cmd-card"><span class="cmd-name">/sprint</span><span class="cmd-desc">Sprint-scoped entrypoint. Runs the workflow declared in the sprint task.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/run-agent</span><span class="cmd-desc">Ad hoc single-agent execution outside sprint files.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/run-workflow</span><span class="cmd-desc">Direct multi-stage workflow outside sprint. Accepts pre-built name or dynamic chain.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/init-project</span><span class="cmd-desc">Bootstrap a repo with agents, workflows, sprints, and spec.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/upgrade-project</span><span class="cmd-desc">Migrate an older initialized project to the latest format.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/migrate</span><span class="cmd-desc">Move all knowledge artifacts to a centralized Obsidian vault.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/reload-projects</span><span class="cmd-desc">Auto-fill metadata for repos registered in <code>state.json</code>.</span></div>
+        <div class="cmd-card"><span class="cmd-name">/critique</span><span class="cmd-desc">Structured Impeccable design critique on a file or URL.</span></div>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="label">CLI syntax</div>
+        <p>Claude Code uses slash commands: <code>/sprint 001</code>. Codex CLI uses dollar-prefix: <code>$sprint 001</code>. All commands and examples in this doc use the Claude syntax.</p>
+      </div>
+    </section>
+
+    <!-- ── Install ── -->
+    <section id="install">
+      <h2>Install Once</h2>
+      <p>Run <code>bootstrap.sh</code> once per machine. It installs all global skills, templates, and vendor MCP servers.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>bash bootstrap.sh                  <span class="cm"># standard install</span>
+bash bootstrap.sh --force          <span class="cm"># back up current install, then reinstall</span>
+bash bootstrap.sh --dry-run        <span class="cm"># print what would happen, no writes</span>
+bash bootstrap.sh --no-mcp         <span class="cm"># skip CVE MCP server install</span></code></pre>
+
+      <p><strong>Requirements:</strong> <code>git</code> and <code>python3 ≥ 3.10</code> (for CVE MCP only). Bootstrap continues with a warning if either is missing.</p>
+
+      <h3>What gets installed</h3>
+      <div class="filetree">
+<span class="dir">~/.claude/</span>
+├── skills/<span class="dir">{init-project, sprint, run-agent, run-workflow, upgrade-project, reload-projects, migrate, push-to-github, create-pr, documentation-from-commits}/</span>SKILL.md
+└── agent-setup/<span class="dir">{VERSION, bin/, templates/}</span>
+
+<span class="dir">~/.codex/</span>
+├── skills/<span class="dir">{init-project, sprint, run-agent, run-workflow, upgrade-project, reload-projects, migrate, push-to-github, create-pr, documentation-from-commits}/</span>SKILL.md
+└── agent-setup/<span class="dir">{VERSION, bin/, templates/}</span>
+
+<span class="dir">~/.agent-setup/</span>
+└── vendor/
+    ├── <span class="dir">cve-mcp-server/</span>   <span class="ann"># cloned + pip-installed in a local venv</span>
+    └── manifest.json     <span class="ann"># paths consumed by render-templates.sh</span></div>
+
+      <div class="callout callout-warn">
+        <div class="label">Override paths</div>
+        <p>Set <code>CLAUDE_HOME</code>, <code>CODEX_HOME</code>, or <code>AGENT_SETUP_VENDOR</code> before running <code>bootstrap.sh</code> to change the install locations.</p>
+      </div>
+    </section>
+
+    <!-- ── Init ── -->
+    <section id="init">
+      <h2>Init a Project</h2>
+      <p>Run <code>/init-project</code> once inside any repository. Pass an optional vision file — if omitted, the framework auto-generates one from detected context.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>cd ~/your-project
+claude
+/init-project ./vision.md</code></pre>
+
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code><span class="cm"># Obsidian vault mode — all knowledge files go to the vault</span>
+/init-project ./vision.md vault_path=~/my-vault</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="label">Idempotent</div>
+        <p><code>init-project</code> never overwrites existing generated files. Use <code>/upgrade-project</code> to migrate an older initialized project.</p>
+      </div>
+
+      <h3>What gets generated</h3>
+      <ul>
+        <li><code>AGENTS.md</code> — quick reference for all agent roles</li>
+        <li><code>.claude/CLAUDE.md</code> — project-level Claude instructions</li>
+        <li><code>.claude/settings.json</code> — permissions and hooks</li>
+        <li><code>.mcp.json</code> + <code>.codex/config.toml</code> — MCP servers (context7, cve-mcp)</li>
+        <li><code>.project/vision.md</code>, <code>state.json</code>, <code>sprints/</code>, <code>designs/</code>, <code>decisions/</code></li>
+        <li><code>agent-setup/agents/</code> — 6 agent definitions with memory files</li>
+        <li><code>agent-setup/workflows/</code> — pre-built workflow definitions</li>
+        <li><code>agent-setup/skills/</code> — stack-specific skill overrides</li>
+        <li><code>agent-setup/spec/engineering-standards.md</code></li>
+      </ul>
+      <p><strong>UI projects additionally get:</strong> Impeccable design skill + <code>PRODUCT.md</code> + <code>DESIGN.md</code> stubs.</p>
+    </section>
+
+    <!-- ── Sprint ── -->
+    <section id="sprint">
+      <h2>sprint</h2>
+      <p>The sprint-scoped entrypoint. Reads a task from the sprint file, infers its workflow, and runs multi-agent orchestration with handoff artifacts.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/sprint &lt;sprint-number&gt;
+/sprint &lt;sprint-number&gt; &lt;task-id&gt;
+/sprint &lt;sprint-number&gt; &lt;task-id&gt; &lt;workflow-or-chain&gt;</code></pre>
+
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/sprint 001
+/sprint 001 US-001
+/sprint 001 US-001 analyze-design-dev-review
+/sprint 001 US-001 developer-qa-reviewer-tech-lead</code></pre>
+
+      <h3>Behavior</h3>
+      <ul>
+        <li>Workflow is inferred from the sprint task <code>Workflow:</code> field — no need to specify it explicitly most of the time.</li>
+        <li>The <code>Workflow:</code> field accepts either a pre-built workflow filename or a dynamic agent chain (e.g. <code>analyst-tech-lead</code>).</li>
+        <li>Handoff artifacts are persisted under <code>.project/workflows/&lt;run-id&gt;/</code>.</li>
+        <li>Sprint task checkboxes are updated only after explicit acceptance verification.</li>
+      </ul>
+    </section>
+
+    <!-- ── run-agent ── -->
+    <section id="run-agent">
+      <h2>run-agent</h2>
+      <p>Ad hoc single-agent execution for tasks that don't belong to a sprint file.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/run-agent &lt;agent&gt; &lt;task text&gt;</code></pre>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/run-agent developer "Fix checkout race condition"
+/run-agent qa-reviewer "Review recent checkout changes for regressions"
+/run-agent designer "Produce mockup for the new dashboard overview"</code></pre>
+
+      <div class="callout callout-info">
+        <div class="label">Single-agent only</div>
+        <p>No workflow argument, no multi-agent handoffs. Use <code>/run-workflow</code> for chained agents.</p>
+      </div>
+    </section>
+
+    <!-- ── run-workflow ── -->
+    <section id="run-workflow">
+      <h2>run-workflow</h2>
+      <p>Direct multi-stage workflow outside the sprint entrypoint. Each agent's output becomes the next agent's input, and all artifacts are persisted.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/run-workflow &lt;workflow-or-chain&gt; &lt;task-id|task-text&gt;</code></pre>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code><span class="cm"># pre-built workflow</span>
+/run-workflow analyze-design-dev-review US-005
+/run-workflow spike-research "Compare hosting options for the API"
+
+<span class="cm"># dynamic agent chain</span>
+/run-workflow developer-qa-reviewer US-012
+/run-workflow analyst-tech-lead-developer "spike on caching strategy"
+/run-workflow product-owner-designer-developer-qa-reviewer US-017</code></pre>
+
+      <h3>How chains resolve</h3>
+      <p>A hyphen-separated chain like <code>analyst-tech-lead-developer</code> is split on hyphens. Each segment maps to <code>agent-setup/agents/&lt;segment&gt;/agent.md</code>. Stages are constructed at runtime — no limit on chain length.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Chain</th><th>Stages</th></tr></thead>
+          <tbody>
+            <tr><td><code>developer-qa-reviewer</code></td><td>2 stages</td></tr>
+            <tr><td><code>analyst-tech-lead-developer</code></td><td>3 stages</td></tr>
+            <tr><td><code>product-owner-designer-developer-qa-reviewer</code></td><td>4 stages</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Workflows ── -->
+    <section id="workflows">
+      <h2>Workflow Format</h2>
+      <h3>Pre-built workflows</h3>
+      <p>Static definitions live at <code>agent-setup/workflows/&lt;name&gt;.md</code>. Each stage must declare these fields explicitly:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>Agent:</code></td><td>Which agent runs this stage</td></tr>
+            <tr><td><code>Inputs:</code></td><td>Files or artifacts this stage reads</td></tr>
+            <tr><td><code>Outputs:</code></td><td>Files this stage produces</td></tr>
+            <tr><td><code>Pass:</code></td><td>Condition to advance to the next stage</td></tr>
+            <tr><td><code>OnFailure:</code></td><td>What to do when the stage fails</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-warn">
+        <div class="label">Prose-only files not supported</div>
+        <p>Workflow files without explicit stage fields are not orchestration-safe. The runner will reject them.</p>
+      </div>
+
+      <h3>Built-in workflows</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Stages</th><th>Use when</th></tr></thead>
+          <tbody>
+            <tr><td><code>analyze-design-dev-review</code></td><td>analyst → designer → developer → qa-reviewer</td><td>Full UI feature</td></tr>
+            <tr><td><code>developer-qa-reviewer</code></td><td>developer → qa-reviewer</td><td>Backend/logic tasks</td></tr>
+            <tr><td><code>bug-triage</code></td><td>analyst → developer → qa-reviewer</td><td>Bug investigation</td></tr>
+            <tr><td><code>spike-research</code></td><td>analyst → tech-lead</td><td>Technical exploration</td></tr>
+            <tr><td><code>release</code></td><td>tech-lead → developer → qa-reviewer</td><td>Release preparation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── MCP ── -->
+    <section id="mcp">
+      <h2>MCP Servers</h2>
+      <p>Every project gets two MCP servers wired automatically at init time, mirrored across both runtimes.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Runtime</th><th>Servers</th></tr></thead>
+          <tbody>
+            <tr><td><code>.mcp.json</code></td><td>Claude Code</td><td><code>context7</code>, <code>cve-mcp</code></td></tr>
+            <tr><td><code>.codex/config.toml</code></td><td>Codex CLI</td><td><code>context7</code>, <code>cve-mcp</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>context7</h3>
+      <p>Up-to-date library and framework documentation via <a href="https://github.com/upstash/context7-mcp" target="_blank">@upstash/context7-mcp</a>. Spawned with <code>npx -y</code> — no prior install needed. Set <code>CONTEXT7_API_KEY</code> for higher rate limits.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>Use context7 to fetch the latest fastapi docs and tell me the recommended dependency pattern in 0.115.</code></pre>
+
+      <h3>cve-mcp</h3>
+      <p>27 security tools across 21 APIs — CVE lookup, EPSS scoring, CISA KEV, MITRE ATT&CK, OSV.dev dependency scan, GitHub Security Advisories, Shodan, VirusTotal, AbuseIPDB, GreyNoise, urlscan. Vendored locally by <code>bootstrap.sh</code>. Works without API keys.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>Use cve-mcp to scan requirements.txt and list the top 5 vulnerable packages by EPSS score.
+Use cve-mcp to check whether CVE-2024-3094 (xz-utils) affects any package in our lockfile.</code></pre>
+
+      <p>Optional env vars for higher quotas: <code>NVD_API_KEY</code>, <code>GITHUB_TOKEN</code>, <code>ABUSEIPDB_KEY</code>, <code>GREYNOISE_API_KEY</code>, <code>SHODAN_KEY</code>.</p>
+
+      <div class="callout callout-info">
+        <div class="label">Not daemons</div>
+        <p>MCP servers are forked as stdio sub-processes when a CLI session starts, and killed when it ends. No ports opened, nothing runs in the background between sessions.</p>
+      </div>
+    </section>
+
+    <!-- ── Design ── -->
+    <section id="design">
+      <h2>Design Quality — Impeccable</h2>
+      <p>UI projects get <a href="https://impeccable.style/" target="_blank">Impeccable</a> wired automatically — an open-source design skill (Apache 2.0) that teaches the AI 29 anti-pattern rules and a professional design vocabulary.</p>
+
+      <h3>What it solves</h3>
+      <p>Most AI-generated UIs suffer from predictable flaws: purple gradients, nested cards, low-contrast text, generic layouts. Impeccable injects deep design knowledge — typography, color, spacing, hierarchy, WCAG — on every prompt, without repeating yourself.</p>
+
+      <h3>Auto-install on UI projects</h3>
+      <p>When <code>init-project</code> detects a front-end stack (<code>react</code>, <code>vue</code>, <code>next</code>, <code>svelte</code>, <code>angular</code>, <code>solid</code>), it automatically:</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><p>Runs <code>npx skills add pbakaus/impeccable</code> to install the skill into <code>.claude/skills/</code>.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><p>Generates <code>PRODUCT.md</code> from <code>vision.md</code> — audience, brand voice, anti-references.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><p>Generates a <code>DESIGN.md</code> stub. Complete it with <code>/impeccable document</code>.</p></div></div>
+      </div>
+
+      <h3>Manual install</h3>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>npx skills add pbakaus/impeccable
+
+<span class="cm"># then bootstrap context:</span>
+/impeccable teach      <span class="cm"># load context from PRODUCT.md / DESIGN.md</span>
+/impeccable document   <span class="cm"># generate full DESIGN.md spec</span></code></pre>
+
+      <h3>Designer agent integration</h3>
+      <p>The designer agent loads <code>PRODUCT.md</code> and <code>DESIGN.md</code> automatically before every action. Its Definition of Done requires zero <code>[BLOCKING]</code> audit findings.</p>
+
+      <h3>Available commands</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>/impeccable teach</code></td><td>Establish project design context from <code>PRODUCT.md</code> / <code>DESIGN.md</code></td></tr>
+            <tr><td><code>/impeccable document</code></td><td>Generate or update <code>DESIGN.md</code></td></tr>
+            <tr><td><code>/impeccable audit</code></td><td>Evaluate against 29 anti-pattern rules — used in DoD</td></tr>
+            <tr><td><code>/impeccable critique</code></td><td>Persona-based qualitative review</td></tr>
+            <tr><td><code>/impeccable polish</code></td><td>Final alignment pass against design system</td></tr>
+            <tr><td><code>/impeccable typeset</code></td><td>Typography refinement</td></tr>
+            <tr><td><code>/impeccable colorize</code></td><td>Color system work</td></tr>
+            <tr><td><code>/impeccable layout</code></td><td>Spatial arrangement</td></tr>
+            <tr><td><code>/impeccable animate</code></td><td>Motion design</td></tr>
+            <tr><td><code>/impeccable delight</code></td><td>Add polish and personality</td></tr>
+            <tr><td><code>/impeccable bolder</code> / <code>/impeccable quieter</code></td><td>Adjust visual weight</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>/critique skill</h3>
+      <p>Run a full structured critique on any design file, component, or live URL:</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/critique                           <span class="cm"># auto-detects most recent .project/designs/*.md</span>
+/critique src/components/Hero.tsx   <span class="cm"># specific component</span>
+/critique https://your-app.dev      <span class="cm"># live URL</span></code></pre>
+      <p>Returns a <strong>Verdict / Findings / Impeccable commands to apply / Next action</strong> report, with every finding mapped to the Impeccable command that fixes it.</p>
+
+      <h3>Push gate</h3>
+      <p><code>push-to-github</code> automatically runs <code>npx impeccable detect</code> when Impeccable is installed and the changeset touches UI files (<code>*.tsx</code>, <code>*.vue</code>, <code>*.jsx</code>, <code>*.html</code>, <code>*.css</code>, <code>*.scss</code>).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Finding severity</th><th>Behaviour</th></tr></thead>
+          <tbody>
+            <tr><td><code>[critical]</code></td><td>Blocks the push — reports exact findings with fix commands</td></tr>
+            <tr><td><code>[warning]</code></td><td>Reported in push summary, non-blocking</td></tr>
+            <tr><td>Impeccable not installed</td><td>Skip silently</td></tr>
+            <tr><td>No UI files in changeset</td><td>Skip silently</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Obsidian ── -->
+    <section id="obsidian">
+      <h2>Obsidian Vault</h2>
+      <p>All project knowledge files — vision, sprints, agents, workflows, spec, decisions — can live in a shared Obsidian vault instead of each repo. Only <code>.project/state.json</code> and <code>.claude/</code> stay in the repo.</p>
+
+      <h3>New project with vault</h3>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/init-project ./vision.md vault_path=~/my-vault</code></pre>
+      <p>The vault is created if it does not exist. A <code>&lt;project-name&gt;/</code> folder is created inside it.</p>
+
+      <h3>Migrate existing project</h3>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/migrate vault_path=~/my-vault</code></pre>
+      <p>Shows a preview and asks for confirmation before moving any files. Creates a backup under <code>.project/upgrades/&lt;timestamp&gt;/</code>.</p>
+
+      <h3>Vault structure</h3>
+      <div class="filetree">
+<span class="dir">~/my-vault/</span>
+├── .obsidian/app.json
+├── _index.md                   <span class="ann"># all-projects index</span>
+└── <span class="dir">&lt;project-name&gt;/</span>
+    ├── _README.md              <span class="ann"># wikilinks overview</span>
+    ├── vision.md
+    ├── spec/engineering-standards.md
+    ├── <span class="dir">agents/&lt;role&gt;/</span>{agent.md, memory.md}
+    ├── <span class="dir">workflows/definitions/</span>
+    ├── <span class="dir">workflows/runs/</span>
+    ├── <span class="dir">sprints/</span>{backlog.md, sprint-NNN.md}
+    ├── <span class="dir">decisions/</span>
+    ├── <span class="dir">designs/</span>
+    ├── <span class="dir">spikes/</span>
+    └── <span class="dir">releases/</span></div>
+
+      <p>All skills (<code>sprint</code>, <code>run-agent</code>, <code>run-workflow</code>) resolve paths through <code>vault_project_path</code> stored in <code>.project/state.json</code>.</p>
+    </section>
+
+    <!-- ── Multi-repo ── -->
+    <section id="multi-repo">
+      <h2>Multi-Repo Projects</h2>
+      <p>Register sibling repositories in <code>.project/state.json</code> to give agents cross-repo awareness.</p>
+
+      <h3>Register repos</h3>
+      <p>Open <code>.project/state.json</code> and add entries. Only <code>path</code> is required:</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>"repos": [
+  { "path": "/absolute/path/to/backend" },
+  { "path": "/absolute/path/to/frontend" },
+  { "path": "/absolute/path/to/mobile" }
+]</code></pre>
+      <p>Then run <code>/reload-projects</code> to auto-detect and fill remaining fields.</p>
+
+      <h3>Auto-injected context</h3>
+      <p>Every <code>sprint</code>, <code>run-workflow</code>, and <code>run-agent</code> call automatically injects a repos block:</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>## Available Repositories (2)
+- backend [go] my-api at /path/to/backend — REST API and auth service
+- frontend [node] my-dashboard at /path/to/frontend — React dashboard</code></pre>
+
+      <h3>Cross-repo sprint tasks</h3>
+      <p>Use the optional <code>Repos:</code> and <code>Depends-on:</code> fields in sprint tasks:</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code><span class="cm"># backend sprint</span>
+### US-005 — Add health check endpoint
+**Repos**: backend
+**Acceptance Criteria**:
+- [ ] GET /health returns 200 with status payload
+
+<span class="cm"># frontend sprint</span>
+### US-006 — Integrate health check in dashboard
+**Repos**: frontend
+**Depends-on**: backend/US-005</code></pre>
+
+      <div class="callout callout-tip">
+        <div class="label">Auto-trigger</div>
+        <p><code>reload-projects</code> is also triggered automatically inside <code>sprint</code>, <code>run-workflow</code>, and <code>run-agent</code> whenever a repo entry has missing fields — so you never have to run it manually if you forget.</p>
+      </div>
+    </section>
+
+    <!-- ── Agents ── -->
+    <section id="agents">
+      <h2>Agent Roles</h2>
+      <p>Six built-in roles, each with its own definition file (<code>agent-setup/agents/&lt;role&gt;/agent.md</code>) and persistent memory file.</p>
+      <div class="agent-row">
+        <div class="agent-chip"><span class="dot dot-blue"></span>product-owner</div>
+        <div class="agent-chip"><span class="dot dot-green"></span>developer</div>
+        <div class="agent-chip"><span class="dot dot-purple"></span>designer</div>
+        <div class="agent-chip"><span class="dot dot-amber"></span>analyst</div>
+        <div class="agent-chip"><span class="dot dot-pink"></span>qa-reviewer</div>
+        <div class="agent-chip"><span class="dot dot-teal"></span>tech-lead</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Role</th><th>Primary responsibility</th><th>Key output</th></tr></thead>
+          <tbody>
+            <tr><td><code>product-owner</code></td><td>Turns vision into sprint tasks with acceptance criteria</td><td><code>sprints/sprint-NNN.md</code></td></tr>
+            <tr><td><code>developer</code></td><td>Implements tasks; cross-repo aware</td><td>Code changes + implementation notes</td></tr>
+            <tr><td><code>designer</code></td><td>UI mockups, journey maps, WCAG compliance, Impeccable audit</td><td><code>designs/&lt;task-id&gt;.md</code></td></tr>
+            <tr><td><code>analyst</code></td><td>Research, spikes, data analysis</td><td><code>spikes/&lt;task-id&gt;.md</code></td></tr>
+            <tr><td><code>qa-reviewer</code></td><td>Review code, verify acceptance criteria, regression check</td><td>PASS/FAIL verdict + findings</td></tr>
+            <tr><td><code>tech-lead</code></td><td>Architecture decisions, spec enforcement, release gates</td><td>ADRs, release notes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Designer — Impeccable Definition of Done</h3>
+      <ul class="dod">
+        <li>All acceptance criteria verified</li>
+        <li>Relevant spec rules (<code>engineering-standards.md</code>) satisfied</li>
+        <li><code>/impeccable audit</code> run — zero <code>[BLOCKING]</code> findings</li>
+        <li>WCAG 2.1 AA verified (contrast, keyboard path, alt text, labels)</li>
+        <li>Memory updated (<code>agent-setup/agents/designer/memory.md</code>)</li>
+      </ul>
+
+      <h3>Adding specialized agents</h3>
+      <p>Place custom agent definitions under <code>agent-setup/agents/specialized/&lt;name&gt;/agent.md</code>. They can then be used in any dynamic chain: <code>/run-workflow &lt;name&gt;-developer US-012</code>.</p>
+    </section>
+
+    <!-- ── Memory ── -->
+    <section id="memory">
+      <h2>Memory Protocol</h2>
+      <p>Every agent loads context in a fixed order before any action to maximise prompt-cache hits (static → semi-static → dynamic):</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><p><strong>Static</strong> — <code>agent-setup/spec/engineering-standards.md</code></p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><p><strong>Static</strong> — <code>.claude/CLAUDE.md</code></p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><p><strong>Static (designer only)</strong> — <code>PRODUCT.md</code> + <code>DESIGN.md</code> if present</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><p><strong>Semi-static</strong> — <code>agent-setup/agents/&lt;role&gt;/memory.md</code></p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><p><strong>Dynamic</strong> — active sprint file under <code>.project/sprints/</code></p></div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-body"><p><strong>Dynamic</strong> — prior workflow artifacts under <code>.project/workflows/&lt;run-id&gt;/</code></p></div></div>
+      </div>
+      <p>After acting, the agent appends a dated entry to its <code>memory.md</code>. Entries older than the last 10 are compacted into a summary block automatically.</p>
+    </section>
+
+    <!-- ── Layout ── -->
+    <section id="layout">
+      <h2>Project Layout</h2>
+      <div class="filetree">
+<span class="dir">your-project/</span>
+├── AGENTS.md
+├── <span class="new">PRODUCT.md</span>                   <span class="ann"># Impeccable: brand, audience, anti-references (UI projects)</span>
+├── <span class="new">DESIGN.md</span>                    <span class="ann"># Impeccable: design spec, tokens, components (UI projects)</span>
+├── .mcp.json                    <span class="ann"># MCP servers for Claude Code (context7, cve-mcp)</span>
+├── <span class="dir">.claude/</span>
+│   ├── CLAUDE.md
+│   └── settings.json
+├── <span class="dir">.codex/</span>
+│   └── config.toml              <span class="ann"># MCP servers for Codex CLI</span>
+├── <span class="dir">.project/</span>
+│   ├── vision.md
+│   ├── state.json
+│   ├── <span class="dir">decisions/</span>
+│   ├── <span class="dir">designs/</span>
+│   ├── <span class="dir">spikes/</span>
+│   ├── <span class="dir">releases/</span>
+│   ├── <span class="dir">sprints/</span>
+│   │   ├── backlog.md
+│   │   └── sprint-001.md
+│   └── <span class="dir">workflows/</span>
+│       └── <span class="dir">&lt;run-id&gt;/</span>
+│           ├── task.md
+│           ├── 01-*.md
+│           └── final-summary.md
+└── <span class="dir">agent-setup/</span>
+    ├── <span class="dir">spec/</span>
+    │   └── engineering-standards.md
+    ├── <span class="dir">agents/</span>
+    │   ├── <span class="dir">product-owner/</span>  designer/  developer/
+    │   ├── <span class="dir">analyst/</span>  qa-reviewer/  tech-lead/
+    │   └── <span class="dir">specialized/</span>
+    ├── <span class="dir">workflows/</span>
+    │   ├── analyze-design-dev-review.md
+    │   ├── bug-triage.md
+    │   ├── spike-research.md
+    │   └── release.md
+    └── <span class="dir">skills/</span>
+        ├── push-to-github.md
+        ├── create-pr.md
+        ├── run-tests.md
+        ├── lint-and-format.md
+        ├── <span class="new">design-critique.md</span>
+        └── dependency-audit.md</div>
+      <p>Files in <span class="new" style="color:var(--green);font-family:var(--font-mono)">green</span> are new in v1.10.0.</p>
+    </section>
+
+    <!-- ── Upgrade ── -->
+    <section id="upgrade">
+      <h2>Upgrade &amp; Migrate</h2>
+      <h3>upgrade-project</h3>
+      <p>For repositories already initialized by an older version. Preview-first, backs up before overwrite.</p>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>/upgrade-project</code></pre>
+      <ul>
+        <li>Targets only core generated files — never touches your custom edits.</li>
+        <li>Creates dated backups under <code>.project/upgrades/&lt;timestamp&gt;/</code>.</li>
+        <li>Updates workflows, session entry docs, state fields, and the README block.</li>
+        <li>Asks before replacing ambiguous or user-modified files.</li>
+      </ul>
+
+      <h3>Refreshing the framework</h3>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>bash bootstrap.sh --force   <span class="cm"># refreshes framework + pulls latest CVE MCP</span></code></pre>
+    </section>
+
+    <!-- ── Uninstall ── -->
+    <section id="uninstall">
+      <h2>Uninstall</h2>
+      <pre><button class="copy-btn" onclick="copy(this)">Copy</button><code>rm -rf ~/.claude/agent-setup \
+       ~/.claude/skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate,push-to-github,create-pr,documentation-from-commits}
+
+rm -rf ~/.codex/agent-setup \
+       ~/.codex/skills/{init-project,sprint,run-agent,run-workflow,upgrade-project,reload-projects,migrate,push-to-github,create-pr,documentation-from-commits}
+
+rm -rf ~/.agent-setup    <span class="cm"># vendored MCP servers (CVE MCP clone + venv)</span></code></pre>
+    </section>
+
+    <!-- ── Changelog ── -->
+    <section id="changelog">
+      <h2>Changelog</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Version</th><th>Highlights</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>v1.10.0</code></td>
+              <td><strong>Impeccable design quality integration.</strong> UI projects auto-install Impeccable (29 anti-pattern rules, 23 design commands). <code>init-project</code> generates <code>PRODUCT.md</code> + <code>DESIGN.md</code> from <code>vision.md</code>. Designer agent gates DoD on zero <code>[BLOCKING]</code> audit findings. New <code>/critique</code> skill. <code>push-to-github</code> runs <code>npx impeccable detect</code> as a UI quality gate.</td>
+            </tr>
+            <tr>
+              <td><code>v1.9.0</code></td>
+              <td><strong>CVE MCP server.</strong> <code>bootstrap.sh</code> installs <code>mukul975/cve-mcp-server</code> locally into <code>~/.agent-setup/vendor/</code> with its own venv. <code>init-project</code> generates <code>.mcp.json</code> and <code>.codex/config.toml</code> wiring both <code>context7</code> and <code>cve-mcp</code> automatically. New flag: <code>--no-mcp</code>.</td>
+            </tr>
+            <tr>
+              <td><code>v1.8.0</code></td>
+              <td>Default MCP servers framework — shared templates for <code>.mcp.json</code> (Claude) and <code>.codex/config.toml</code> (Codex). Context7 wired by default.</td>
+            </tr>
+            <tr>
+              <td><code>v1.7.0</code></td>
+              <td>Active refactoring promoted to core engineering principle (<code>spec/engineering-standards.md §9</code>). Developer and QA agent templates updated.</td>
+            </tr>
+            <tr>
+              <td><code>v1.6.0</code></td>
+              <td>Obsidian-aware skills: <code>migrate</code> skill, vault-mode workflows.</td>
+            </tr>
+            <tr>
+              <td><code>v1.5.0</code></td>
+              <td>Obsidian vault integration — <code>vault_path=</code> argument on <code>init-project</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  /* ── Copy buttons ─────────────────────────────────────────────────── */
+  function copy(btn) {
+    const code = btn.nextElementSibling.innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+
+  /* ── Active nav link on scroll ────────────────────────────────────── */
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('nav a[href^="#"]');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  /* ── Mobile sidebar ───────────────────────────────────────────────── */
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>

@@ -20,10 +20,11 @@ allowed-tools: Bash, Read, Glob, Grep
 4. Group changed files into coherent commits by concern using Conventional Commits.
 5. Run the pre-commit gate if `.pre-commit-config.yaml` exists: `pre-commit run --all-files`.
 6. Run the stack-specific quality gates (see Stack Gates below).
-7. On any gate failure: read the error, implement targeted fixes, retry the failing gate. Continue until pass or true blocker.
-8. Create grouped Conventional Commits (`git add <files>` + `git commit -m "type(scope): summary"`).
-9. Re-run all gates after committing.
-10. Push: `git push origin <current-branch>`.
+7. Run the design gate if applicable (see Design Gate below).
+8. On any gate failure: read the error, implement targeted fixes, retry the failing gate. Continue until pass or true blocker.
+9. Create grouped Conventional Commits (`git add <files>` + `git commit -m "type(scope): summary"`).
+10. Re-run all gates after committing.
+11. Push: `git push origin <current-branch>`.
 
 ## Stack Detection
 Detect in this order (first match wins):
@@ -81,6 +82,23 @@ Run in order, skipping those not present:
 - `npm test`
 - `pytest`
 - `go test ./...`
+
+## Design Gate
+
+Run only when **all** of these are true:
+- `npx impeccable detect --version` exits 0 (Impeccable is installed in the project)
+- The changeset contains at least one file matching `*.tsx`, `*.vue`, `*.jsx`, `*.html`, `*.css`, or `*.scss`
+
+```bash
+npx impeccable detect
+```
+
+| Severity | Behaviour |
+|---|---|
+| `[critical]` finding | Block push — report exact findings, suggest `/impeccable` fix commands |
+| `[warning]` finding | Report but do not block — append to push summary |
+| No Impeccable installed | Skip silently |
+| No UI files in changeset | Skip silently |
 
 ## Commit Rules
 - Conventional Commit format: `type(scope): summary`

@@ -1,4 +1,3 @@
-<!-- generated-by: init-project -->
 ---
 name: create-pr
 description: >

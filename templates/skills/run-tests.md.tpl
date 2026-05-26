@@ -1,5 +1,3 @@
-<!-- generated-by: /init-project -->
-<!-- vars: TEST_CMD, COVERAGE_TOOL -->
 ---
 name: run-tests
 description: >

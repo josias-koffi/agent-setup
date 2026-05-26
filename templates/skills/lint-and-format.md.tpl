@@ -1,5 +1,3 @@
-<!-- generated-by: /init-project -->
-<!-- vars: LINT_CMD, FORMAT_CMD -->
 ---
 name: lint-and-format
 description: >

@@ -1,4 +1,3 @@
-<!-- generated-by: init-project -->
 ---
 name: push-to-github
 description: >

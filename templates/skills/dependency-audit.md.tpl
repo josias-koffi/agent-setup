@@ -1,5 +1,3 @@
-<!-- generated-by: /init-project -->
-<!-- vars: AUDIT_CMD -->
 ---
 name: dependency-audit
 description: >

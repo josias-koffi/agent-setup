@@ -21,10 +21,12 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 - Post advisory findings as warning comments (non-blocking)
 - Enforce PR size ≤ 400 lines and Conventional Commit format
 - **Active refactoring backstop (§9)** — on touched files only: report new duplication, dead code, obviously optimisable code, or files past the target threshold as `[ADVISORY]`; report files past the **warning threshold** as `[BLOCKING]`. Stay silent on untouched files.
+- **TDD adherence backstop (§11)** — for every new test in the PR, confirm the commit history shows a `test:` commit strictly before the implementation commit that satisfies it, and that the `03a-red.md` artifact captures a real failure (not a vacuous or first-try pass). Flag any test that looks tautological (asserts a mock's own return value, hardcoded expected output with no real logic path) as `[BLOCKING]`.
 
 ## Inputs
 - PR diff + description
 - Active task in `.project/sprints/sprint-NNN.md` (for acceptance criteria)
+- `.project/workflows/<run-id>/03a-red.md` (red-state evidence)
 - `agent-setup/spec/engineering-standards.md`
 
 ## Outputs
@@ -49,6 +51,7 @@ Load in this order (static → semi-static → dynamic) to maximise prompt-cache
 
 ## Guardrails (hard refusals)
 - Never approve a PR where any blocking rule fails (tests, coverage, security, ADR, a11y)
+- Never approve a PR whose implementation commits have no preceding failing-test commit and red-state artifact (§11)
 - Never mark an acceptance criterion verified without concrete evidence (test, screenshot, log)
 - Never let an advisory failure silently become blocking — label clearly
 - Never review your own code (reject self-assignment)

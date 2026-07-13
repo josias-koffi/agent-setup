@@ -31,6 +31,8 @@ If the project already uses a different architecture, document it here and keep 
 
 Measured with: `{{COVERAGE_TOOL}}`
 
+These thresholds are a byproduct of following §11 (Test-Driven Development), not a target pursued after the fact.
+
 ## 3. Conventional Commits + SemVer (blocking on commit)
 
 Format: `<type>(<scope>): <description>`
@@ -131,7 +133,27 @@ Tested with: axe-core or equivalent in CI.
 
 The lines saved by an opportunistic refactor count inside the current task's diff. Use a separate `refactor:` Conventional Commit when it improves PR readability, or fold it into the main `feat:`/`fix:` commit otherwise.
 
-## 10. Advisory standards (non-blocking)
+## 11. Test-Driven Development (blocking)
+
+**TDD is the default development strategy for this project, not an optional practice.** No production code is written without a preceding failing test.
+
+Cycle, enforced by role separation across two agents:
+
+1. **Red** — the `test-writer` agent translates an acceptance criterion into a test, runs it, and proves it fails for the right reason (missing behavior, not a typo). The failing test is committed alone (`test:` Conventional Commit) before any implementation exists.
+2. **Green** — the `developer` agent receives only the failing test and its failure evidence, and writes the minimal code to make it pass. The developer never rewrites the test to make it pass; a test believed wrong is flagged `[BLOCKING]`, not edited.
+3. **Refactor** — once green, the developer actively refactors touched files (§9), re-running tests after every step to confirm they stay green.
+
+Rules:
+- **Role separation is mandatory**: the agent that writes the test is never the agent that implements against it, so the implementation can't be shaped around a test the same reasoning already knows how to satisfy.
+- **No same-commit test+implementation**: a PR where a test and the code it exercises land in the same commit fails review.
+- **No tautological tests**: assertions against a mock's own configured return value, or hardcoded expected output with no real logic path, are rejected.
+- **Prefer classicist tests**: real objects and state verification over mocks; mock only true external boundaries (network, clock, filesystem, third-party APIs).
+- **Granularity**: one behavior per unit test, cycle at the smallest unit that expresses the acceptance criterion. Reserve acceptance/outside-in tests for stitching units together once each passes.
+- Bug fixes follow the same flow: a regression test is written and proven to fail before the fix.
+
+Enforced procedurally, not just by instruction: the `run-tests` skill's `expect-fail` mode requires proof of failure before the `analyze-design-dev-review` workflow's Green stage is allowed to start, and the QA Reviewer rejects any PR missing a red-state artifact.
+
+## 12. Advisory standards (non-blocking)
 
 These are enforced by the QA Reviewer in a warning mode. Agents should fix them but a single advisory failure does not block the PR.
 
@@ -153,4 +175,5 @@ These are enforced by the QA Reviewer in a warning mode. Agents should fix them 
 | Security baseline | Blocking | CI + pre-commit |
 | Observability | Blocking (services) | PR review |
 | Active refactoring (touched files) | Blocking above warning threshold / Advisory at target | Dev + QA review |
+| TDD (test precedes implementation, role-separated) | Blocking | Test-writer + Dev + QA review |
 | Naming / function length / docs | Advisory | PR review |

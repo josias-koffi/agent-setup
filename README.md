@@ -353,6 +353,7 @@ your-project/
     ├── agents/
     │   ├── product-owner/
     │   ├── developer/
+    │   ├── test-writer/
     │   ├── designer/
     │   ├── analyst/
     │   ├── qa-reviewer/
@@ -533,7 +534,7 @@ analyst-tech-lead-developer       → 3-stage chain
 product-owner-designer-developer-qa-reviewer  → 4-stage chain
 ```
 
-The run directory is named `<chain>-<timestamp>` for traceability. There is no limit on chain length. Any combination of the built-in agents (`product-owner`, `developer`, `designer`, `analyst`, `qa-reviewer`, `tech-lead`) and any specialized agents added under `agent-setup/agents/specialized/` can be used.
+The run directory is named `<chain>-<timestamp>` for traceability. There is no limit on chain length. Any combination of the built-in agents (`product-owner`, `developer`, `test-writer`, `designer`, `analyst`, `qa-reviewer`, `tech-lead`) and any specialized agents added under `agent-setup/agents/specialized/` can be used.
 
 ## Memory Protocol
 
@@ -570,6 +571,7 @@ rm -rf ~/.agent-setup    # vendored MCP servers (CVE MCP clone + venv)
 
 ## Changelog Highlights
 
+- **v1.11.0** — **TDD is now the default development strategy**: new `test-writer` agent writes and proves failing tests (red) in a separate context from the `developer` agent, which implements the minimal green code and then refactors — role separation prevents an agent from shaping implementation around a test it wrote itself. `analyze-design-dev-review` Stage 3 splits into `3a - Red` / `3b - Green` / `3c - Refactor`. `run-tests` gains an `expect-fail` mode. New `spec/engineering-standards.md §11` (blocking). QA Reviewer gains a TDD adherence backstop (rejects PRs missing a red-state artifact or a preceding `test:` commit).
 - **v1.10.0** — **Impeccable design quality integration**: UI projects auto-install [Impeccable](https://impeccable.style/) (29 anti-pattern rules, 23 design commands). `init-project` generates `PRODUCT.md` + `DESIGN.md` stubs from `vision.md`. Designer agent loads design context automatically and gates DoD on zero `[BLOCKING]` audit findings. New `/critique` skill for structured design reviews. `push-to-github` runs `npx impeccable detect` as a UI quality gate.
 - **v1.9.0** — `bootstrap.sh` now installs the **CVE MCP server** locally (`mukul975/cve-mcp-server`) into `~/.agent-setup/vendor/cve-mcp-server/` with its own Python venv. `init-project` generates `.mcp.json` and `.codex/config.toml` wiring both `context7` and `cve-mcp` automatically. New flag: `bash bootstrap.sh --no-mcp`.
 - **v1.8.0** — Default MCP servers framework: shared templates `.mcp.json` (Claude) + `.codex/config.toml` (Codex), Context7 by default.

@@ -208,11 +208,12 @@ if [ "$VAULT_MODE" = "true" ]; then
         render_one "$tpl" "agent-setup/skills/$base"
     done
 
-    ROLES=(product-owner developer designer analyst qa-reviewer tech-lead)
+    ROLES=(product-owner developer test-writer designer analyst qa-reviewer tech-lead)
     role_title_for() {
         case "$1" in
             product-owner) echo "Product Owner" ;;
             developer)     echo "Developer" ;;
+            test-writer)   echo "Test Writer" ;;
             designer)      echo "Designer" ;;
             analyst)       echo "Analyst" ;;
             qa-reviewer)   echo "QA Reviewer" ;;
@@ -256,11 +257,12 @@ else
         render_one "$tpl" "agent-setup/skills/$base"
     done
 
-    ROLES=(product-owner developer designer analyst qa-reviewer tech-lead)
+    ROLES=(product-owner developer test-writer designer analyst qa-reviewer tech-lead)
     role_title_for() {
         case "$1" in
             product-owner) echo "Product Owner" ;;
             developer)     echo "Developer" ;;
+            test-writer)   echo "Test Writer" ;;
             designer)      echo "Designer" ;;
             analyst)       echo "Analyst" ;;
             qa-reviewer)   echo "QA Reviewer" ;;

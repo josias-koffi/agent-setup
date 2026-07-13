@@ -91,7 +91,7 @@ Set `VAULT_PATH=""` and `VAULT_PROJECT_PATH=""`.
 Create full repo directory structure:
 ```bash
 mkdir -p .claude .project/{decisions,designs,spikes,releases,sprints,workflows}
-mkdir -p agent-setup/agents/{product-owner,developer,designer,analyst,qa-reviewer,tech-lead,specialized}
+mkdir -p agent-setup/agents/{product-owner,developer,test-writer,designer,analyst,qa-reviewer,tech-lead,specialized}
 mkdir -p agent-setup/{workflows,skills,spec}
 ```
 

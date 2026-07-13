@@ -117,14 +117,21 @@ Managed paths:
 - every file under `agent-setup/skills/` that exists in the current framework templates
 - the generated README block only, not the full file
 - `$AGENTS_DIR/designer/agent.md` — classify as `replace` when it lacks the `## Design workflow` section (introduced in framework v1.10.0)
+- `$AGENTS_DIR/test-writer/agent.md` — classify as `create` when missing (new agent role introduced in framework v1.11.0)
+- `$AGENTS_DIR/developer/agent.md` — classify as `replace` when it lacks a `§11` / TDD green-phase reference (introduced in framework v1.11.0)
+- `$AGENTS_DIR/qa-reviewer/agent.md` — classify as `replace` when it lacks a TDD adherence backstop reference (introduced in framework v1.11.0)
 - `PRODUCT.md` — classify as `create` if missing on a UI project; `skip` if present (user-authored, never overwrite)
 - `DESIGN.md` — same rule as `PRODUCT.md`
 
 Detection rules:
 - prefer generated markers such as `<!-- generated-by: /init-project -->`
 - for `$AGENTS_DIR/designer/agent.md`: if the file lacks the `## Design workflow` section, treat it as pre-v1.10.0 and mark it `replace`. If it contains signs of custom user editing beyond the generated sections, mark it `needs-confirmation`.
+- for `$AGENTS_DIR/test-writer/agent.md`: if the directory/file does not exist, mark `create`; this is additive and never overwrites existing agents.
+- for `$AGENTS_DIR/developer/agent.md` and `$AGENTS_DIR/qa-reviewer/agent.md`: if the file has no mention of `test-writer` or `§11`, treat as pre-v1.11.0 and mark `replace`; if it shows custom user editing beyond the generated sections, mark `needs-confirmation`.
 - for `PRODUCT.md` and `DESIGN.md`: always `skip` if the file exists — these are user-authored context files. Only `create` when absent on a UI project.
 - for `$SPEC_FILE`, if the file lacks the `## 9. Active Refactoring` header, treat it as outdated and mark it `replace` (the §9 active-refactoring core principle was added in framework v1.7.0 — projects initialised earlier are missing it)
+- for `$SPEC_FILE`, if the file lacks the `## 11. Test-Driven Development` header, treat it as outdated and mark it `replace` (TDD was made the default development strategy in framework v1.11.0)
+- for the `analyze-design-dev-review` workflow, if `Stage 3 - Implement` exists instead of `Stage 3a - Red` / `3b - Green` / `3c - Refactor`, treat it as pre-v1.11.0 and mark `replace`
 - for workflows, if the current file lacks explicit stage fields like `Agent:` / `Inputs:` / `Outputs:` / `Pass:` / `OnFailure:`, treat it as old generated content and mark it `replace` unless there is strong evidence of custom user editing
 - for project skills, prefer replacement when the file still looks framework-generated; if it contains user-specific edits beyond stack adaptation, classify it `needs-confirmation`
 - for `.project/state.json`, preserve current values where possible; treat missing orchestration keys as migration targets, not as a reason to reset the whole file blindly
@@ -178,6 +185,14 @@ Create backups only for files that will actually be overwritten.
 **Designer agent v1.10.0 upgrade:**
 - Refresh `$AGENTS_DIR/designer/agent.md` whenever the file lacks the `## Design workflow` section, applying the standard `replace` vs `needs-confirmation` classification.
 - The new designer agent introduces: 3-phase workflow (Design Thinking → design doc → Impeccable quality gate), `frontend-design` skill integration, anti-convergence guardrails, and expanded DoD.
+
+**TDD rollout (v1.11.0) — TDD becomes the default development strategy:**
+- Create `$AGENTS_DIR/test-writer/agent.md` and `$AGENTS_DIR/test-writer/memory.md` if the directory is missing (render from the `test-writer` and `_memory` templates). This is purely additive.
+- Refresh `$AGENTS_DIR/developer/agent.md` whenever it lacks a `test-writer` / `§11` reference: the developer role changes from "write code and tests" to green-phase-only (receives a failing test, writes minimal code, never edits the test).
+- Refresh `$AGENTS_DIR/qa-reviewer/agent.md` whenever it lacks the TDD adherence backstop: the reviewer now checks that a `test:` commit precedes the implementation commit and rejects tautological tests.
+- Refresh `$SPEC_FILE` whenever it lacks `## 11. Test-Driven Development`. Always create a backup first.
+- Replace the `analyze-design-dev-review` workflow whenever `Stage 3 - Implement` is still a single monolithic stage: it splits into `3a - Red` (test-writer), `3b - Green` (developer), `3c - Refactor` (developer).
+- Refresh `run-tests` under `agent-setup/skills/` whenever it lacks `expect-fail` mode.
 
 Apply the standard `replace` vs `needs-confirmation` classification for all agent template refreshes. Do not rewrite `$AGENTS_DIR/*/memory.md` — memory is append-only.
 
@@ -293,7 +308,8 @@ Recommended next actions:
 4. Inspect `.project/state.json` orchestration fields
 5. *(UI projects)* Fill `PRODUCT.md` (audience, brand voice, anti-references) and run `/impeccable document` to generate the full `DESIGN.md`
 6. *(UI projects)* Run `/impeccable teach` so the designer agent loads the new context
-7. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
+7. If `test-writer` was newly created, mention it to the team: sprint tasks using `analyze-design-dev-review` now route through it automatically at Stage 3a
+8. Run `run-workflow <workflow> <task-id|task-text>` or `sprint 001` to validate the upgraded project
 
 ## Hard rules
 - Never touch files outside the managed core paths listed above
